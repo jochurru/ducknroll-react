@@ -16,7 +16,7 @@ return (
         <img 
             src={logo} 
             alt="Duck'n Roll Logo" 
-            className="h-24 w-auto"
+            className="h-44 w-auto"
         />
         </div>
         <h1 className="text-5xl md:text-6xl font-bold mb-6">

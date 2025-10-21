@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import logo from '../assets/images/logo1.png';
 
 const Login = () => {
 const [isLogin, setIsLogin] = useState(true); // true = Login, false = Registro
@@ -62,7 +63,9 @@ return (
     {/* Logo */}
     <div className="text-center mb-8">
         <Link to="/" className="inline-flex items-center space-x-2 text-2xl font-bold text-dark">
-        <span>🦆</span>
+        <img src={logo}
+        alt="Duck'n Roll Logo" 
+        className="h-20 w-auto" />
         <span>Duck'n Roll</span>
         </Link>
         <p className="text-gray-600 mt-2">

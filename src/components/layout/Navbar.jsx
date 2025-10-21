@@ -35,7 +35,7 @@ return (
         <img 
             src={logo} 
             alt="Duck'n Roll Logo" 
-            className="h-10 w-auto"
+            className="h-16 w-auto"
         />
         <span>Duck'n Roll</span>
         </Link>

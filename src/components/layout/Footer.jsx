@@ -12,7 +12,7 @@ return (
             <img 
             src={logo} 
             alt="Duck'n Roll Logo" 
-            className="h-8 w-auto"
+            className="h-14 w-auto"
             />
             <h3 className="text-xl font-bold text-primary">
             Duck'n Roll
