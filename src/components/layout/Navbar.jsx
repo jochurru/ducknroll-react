@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import logo from '../../assets/images/logo1.png';
 
 const Navbar = () => {
 const { user, logout, isAuthenticated } = useAuth();
@@ -29,9 +30,13 @@ return (
         <Link 
         to="/" 
         onClick={closeMenu}
-        className="flex items-center space-x-2 text-xl font-bold hover:text-primary transition-colors"
+        className="flex items-center space-x-2 text-xl font-bold hover:opacity-80 transition-opacity"
         >
-        <span>🦆</span>
+        <img 
+            src={logo} 
+            alt="Duck'n Roll Logo" 
+            className="h-10 w-auto"
+        />
         <span>Duck'n Roll</span>
         </Link>
 
@@ -89,12 +94,10 @@ return (
         aria-label="Toggle menu"
         >
         {isMenuOpen ? (
-            // X icon
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
         ) : (
-            // Hamburger icon
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>

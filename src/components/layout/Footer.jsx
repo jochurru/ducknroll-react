@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import logo from '../../assets/images/logo1.png';
 
 const Footer = () => {
 return (
@@ -7,9 +8,16 @@ return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Columna 1 */}
         <div>
-        <h3 className="text-xl font-bold mb-4 text-primary">
-            🦆 Duck'n Roll
-        </h3>
+        <div className="flex items-center space-x-2 mb-4">
+            <img 
+            src={logo} 
+            alt="Duck'n Roll Logo" 
+            className="h-8 w-auto"
+            />
+            <h3 className="text-xl font-bold text-primary">
+            Duck'n Roll
+            </h3>
+        </div>
         <p className="text-gray-light">
             Remeras con diseños exclusivos de cultura retro y gaming.
         </p>
