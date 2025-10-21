@@ -7,10 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#FF6B6B',
-        secondary: '#4ECDC4',
-        dark: '#1A1A2E',
-        accent: '#FFE66D',
+        // Nueva paleta Duck'n Roll
+        primary: '#FFD700',      // Amarillo pato (dorado)
+        'primary-dark': '#FFC700', // Amarillo más oscuro para hover
+        secondary: '#1A1A1A',    // Negro profundo
+        dark: '#000000',         // Negro puro
+        'gray-custom': '#4A4A4A', // Gris medio
+        'gray-light': '#E5E5E5',  // Gris claro
+        accent: '#FFFFFF',       // Blanco
       },
       animation: {
         'fadeIn': 'fadeIn 0.3s ease-in-out',
