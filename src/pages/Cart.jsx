@@ -50,20 +50,20 @@ return (
         {/* Lista de productos */}
         <div className="lg:col-span-2 space-y-4">
         {cart.map((item) => (
-            <div key={item.id} className="bg-white rounded-xl shadow-lg p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            
+            <div key={item.id} className="bg-white rounded-xl shadow-lg p-4 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
+
             {/* Imagen */}
-            <div className="w-full sm:w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+            <div className="flex justify-center items-center w-full sm:w-24 h-48 sm:h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                 <img
                 src={getImagePath(item.imagen)}
                 alt={item.nombre}
-                className="w-full h-full object-cover"
+                className="max-w-full max-h-full object-contain"
                 onError={(e) => { e.target.src = 'https://via.placeholder.com/100x100?text=?'; }}
                 />
             </div>
 
             {/* Información */}
-            <div className="flex-grow">
+            <div className="flex-grow w-full sm:w-auto">
                 <Link
                 to={`/producto/${item.id}`}
                 className="text-lg sm:text-xl font-bold text-dark hover:text-primary transition-colors line-clamp-1"
