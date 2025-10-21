@@ -62,7 +62,7 @@ return (
     <div className="max-w-md w-full bg-white rounded-lg shadow-2xl p-8">
     {/* Logo */}
     <div className="text-center mb-8">
-        <Link to="/" className="inline-flex items-center space-x-2 text-2xl font-bold text-dark">
+        <Link to="/" className="inline-flex items-center space-x-2 text-2xl font-retro text-dark">
         <img src={logo}
         alt="Duck'n Roll Logo" 
         className="h-20 w-auto" />

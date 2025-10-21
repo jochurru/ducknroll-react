@@ -14,7 +14,7 @@ return (
             alt="Duck'n Roll Logo" 
             className="h-14 w-auto"
             />
-            <h3 className="text-xl font-bold text-primary">
+            <h3 className="text-xl font-retro text-primary">
             Duck'n Roll
             </h3>
         </div>

@@ -7,14 +7,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Nueva paleta Duck'n Roll
-        primary: '#FFD700',      // Amarillo pato (dorado)
-        'primary-dark': '#FFC700', // Amarillo más oscuro para hover
-        secondary: '#1A1A1A',    // Negro profundo
-        dark: '#000000',         // Negro puro
-        'gray-custom': '#4A4A4A', // Gris medio
-        'gray-light': '#E5E5E5',  // Gris claro
-        accent: '#FFFFFF',       // Blanco
+        primary: '#FFD700',
+        'primary-dark': '#FFC700',
+        secondary: '#1A1A1A',
+        dark: '#000000',
+        'gray-custom': '#4A4A4A',
+        'gray-light': '#E5E5E5',
+        accent: '#FFFFFF',
+      },
+      fontFamily: {
+        'retro': ['"Press Start 2P"', 'cursive'],
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fadeIn': 'fadeIn 0.3s ease-in-out',

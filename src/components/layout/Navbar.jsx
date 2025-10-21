@@ -30,7 +30,7 @@ return (
         <Link 
         to="/" 
         onClick={closeMenu}
-        className="flex items-center space-x-2 text-xl font-bold hover:opacity-80 transition-opacity"
+        className="flex items-center space-x-2 text-xl font-retro hover:opacity-80 transition-opacity"
         >
         <img 
             src={logo} 
