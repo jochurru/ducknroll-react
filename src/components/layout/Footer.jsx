@@ -1,14 +1,16 @@
+import { Link } from 'react-router-dom';
+
 const Footer = () => {
 return (
-<footer className="bg-dark text-white py-8 mt-auto">
+<footer className="bg-secondary text-accent py-8 mt-auto">
     <div className="container mx-auto px-4">
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Columna 1 */}
         <div>
-        <h3 className="text-xl font-bold mb-4 text-accent">
+        <h3 className="text-xl font-bold mb-4 text-primary">
             🦆 Duck'n Roll
         </h3>
-        <p className="text-gray-300">
+        <p className="text-gray-light">
             Remeras con diseños exclusivos de cultura retro y gaming.
         </p>
         </div>
@@ -18,14 +20,19 @@ return (
         <h4 className="text-lg font-semibold mb-4">Enlaces</h4>
         <ul className="space-y-2">
             <li>
-            <a href="/productos" className="text-gray-300 hover:text-accent transition-colors">
-                Productos
-            </a>
+            <Link to="/" className="text-gray-light hover:text-primary transition-colors">
+                Inicio
+            </Link>
             </li>
             <li>
-            <a href="/contacto" className="text-gray-300 hover:text-accent transition-colors">
+            <Link to="/productos" className="text-gray-light hover:text-primary transition-colors">
+                Productos
+            </Link>
+            </li>
+            <li>
+            <Link to="/contacto" className="text-gray-light hover:text-primary transition-colors">
                 Contacto
-            </a>
+            </Link>
             </li>
         </ul>
         </div>
@@ -34,20 +41,38 @@ return (
         <div>
         <h4 className="text-lg font-semibold mb-4">Redes Sociales</h4>
         <div className="flex space-x-4">
-            <a href="#" className="text-2xl hover:text-accent transition-colors">
+            <a 
+            href="https://facebook.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-2xl hover:text-primary transition-colors"
+            aria-label="Facebook"
+            >
             📘
             </a>
-            <a href="#" className="text-2xl hover:text-accent transition-colors">
+            <a 
+            href="https://instagram.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-2xl hover:text-primary transition-colors"
+            aria-label="Instagram"
+            >
             📷
             </a>
-            <a href="#" className="text-2xl hover:text-accent transition-colors">
+            <a 
+            href="https://twitter.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-2xl hover:text-primary transition-colors"
+            aria-label="Twitter"
+            >
             🐦
             </a>
         </div>
         </div>
     </div>
 
-    <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+    <div className="border-t border-gray-custom mt-8 pt-8 text-center text-gray-light">
         <p>&copy; 2025 Duck'n Roll. Todos los derechos reservados.</p>
     </div>
     </div>
