@@ -17,7 +17,7 @@ return (
     <div className="container mx-auto px-4">
     {/* Header */}
     <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-dark mb-4">
+        <h1 className="text-4xl font-retro text-dark mb-4">
         Nuestros Productos
         </h1>
         <p className="text-gray-600 text-lg">
