@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext';
+import { showConfirm, toastSuccess } from '../utils/sweetalert';
 
 const Cart = () => {
 const { cart, removeFromCart, updateQuantity, clearCart, getTotalItems, getTotalPrice } = useCart();
@@ -9,10 +10,21 @@ const navigate = useNavigate();
 
 const handleCheckout = () => {
 if (cart.length === 0) {
-    alert('El carrito está vacío');
     return;
 }
 navigate('/checkout');
+};
+
+const handleClearCart = async () => {
+const result = await showConfirm(
+    '¿Vaciar el carrito?',
+    'Se eliminarán todos los productos del carrito'
+);
+
+if (result.isConfirmed) {
+    clearCart();
+    toastSuccess('Carrito vaciado');
+}
 };
 
 if (cart.length === 0) {
@@ -111,16 +123,14 @@ return (
             </div>
         ))}
 
-        {/* Botón limpiar carrito */}
+    {/* Botón limpiar carrito */}
         <button
-            onClick={() => {
-            if (window.confirm('¿Estás seguro de vaciar el carrito?')) clearCart();
-            }}
-            className="w-full bg-gray-200 hover:bg-gray-300 text-dark py-2 sm:py-3 rounded-lg font-semibold transition-colors"
+        onClick={handleClearCart}
+        className="w-full bg-gray-light hover:bg-gray-custom hover:text-white text-dark py-3 rounded-lg font-semibold transition-colors"
         >
-            🗑️ Vaciar Carrito
+        🗑️ Vaciar Carrito
         </button>
-        </div>
+    </div>
 
         {/* Resumen del pedido */}
         <div className="lg:col-span-1">

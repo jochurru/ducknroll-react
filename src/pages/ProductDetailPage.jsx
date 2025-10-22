@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
+import { toastSuccess } from '../utils/sweetalert';
 
 const ProductDetailPage = () => {
-const { id } = useParams(); // Obtener el ID de la URL
+const { id } = useParams();
 const navigate = useNavigate();
 const { getProduct, getImagePath } = useProducts();
 const { addToCart, isInCart } = useCart();
@@ -31,8 +32,7 @@ fetchProduct();
 
 const handleAddToCart = () => {
 addToCart(product, quantity);
-// Mostrar mensaje o redirigir al carrito
-alert(`${product.nombre} agregado al carrito`);
+toastSuccess(`${quantity} ${product.nombre}${quantity > 1 ? 's' : ''} agregado${quantity > 1 ? 's' : ''} al carrito 🛒`);
 };
 
 if (loading) {
@@ -59,10 +59,9 @@ return (
 }
 
 return (
-<div className="min-h-screen bg-gray-50 py-12">
+<div className="min-h-screen bg-gray-light py-12">
     <div className="container mx-auto px-4">
-    {/* Breadcrumb */}
-    <div className="mb-8 text-gray-600">
+    <div className="mb-8 text-gray-custom">
         <Link to="/" className="hover:text-primary">Inicio</Link>
         {' > '}
         <Link to="/productos" className="hover:text-primary">Productos</Link>
@@ -72,8 +71,7 @@ return (
 
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
-        {/* Imagen */}
-        <div className="bg-gray-100 rounded-lg overflow-hidden">
+        <div className="bg-gray-light rounded-lg overflow-hidden">
             <img
             src={getImagePath(product.imagen)}
             alt={product.nombre}
@@ -84,29 +82,27 @@ return (
             />
         </div>
 
-        {/* Información */}
         <div className="flex flex-col">
-            <h1 className="text-3xl font-bold text-dark mb-4">
+            <h1 className="text-3xl font-bold text-dark mb-4 font-retro">
             {product.nombre}
             </h1>
 
-            <p className="text-4xl font-bold text-primary mb-6">
+            <p className="text-4xl font-bold text-primary mb-6 font-retro">
             ${product.precio}
             </p>
 
-            <p className="text-gray-600 mb-8 leading-relaxed">
+            <p className="text-gray-custom mb-8 leading-relaxed font-sans">
             {product.descripcion}
             </p>
 
-            {/* Selector de cantidad */}
             <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-custom mb-2">
                 Cantidad:
             </label>
             <div className="flex items-center space-x-4">
                 <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="bg-gray-200 hover:bg-gray-300 w-10 h-10 rounded-lg font-bold"
+                className="bg-gray-light hover:bg-gray-custom hover:text-white w-10 h-10 rounded-lg font-bold transition-colors"
                 >
                 -
                 </button>
@@ -115,24 +111,23 @@ return (
                 </span>
                 <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="bg-gray-200 hover:bg-gray-300 w-10 h-10 rounded-lg font-bold"
+                className="bg-gray-light hover:bg-gray-custom hover:text-white w-10 h-10 rounded-lg font-bold transition-colors"
                 >
                 +
                 </button>
             </div>
             </div>
 
-            {/* Botones */}
             <div className="space-y-4">
             <button
                 onClick={handleAddToCart}
-                className="w-full bg-primary hover:bg-red-600 text-white py-3 rounded-lg font-bold transition-colors"
+                className="w-full bg-primary hover:bg-primary-dark text-dark py-3 rounded-lg font-bold transition-colors"
             >
                 {isInCart(product.id) ? 'Agregar más al carrito' : 'Agregar al carrito'}
             </button>
             <button
                 onClick={() => navigate('/productos')}
-                className="w-full bg-gray-200 hover:bg-gray-300 text-dark py-3 rounded-lg font-bold transition-colors"
+                className="w-full bg-gray-light hover:bg-gray-custom hover:text-white text-dark py-3 rounded-lg font-bold transition-colors"
             >
                 Seguir comprando
             </button>

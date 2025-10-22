@@ -10,6 +10,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Confirmation from './pages/Confirmation';
 import ProtectedRoute from './components/ProtectedRoute';
+import ScrollToTop from './components/Scrolltotop';
 
 function App() {
   return (

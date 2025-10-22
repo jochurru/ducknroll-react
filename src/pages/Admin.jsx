@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductContext';
 import { createProduct } from '../services/sheetdb';
 import { uploadImage } from '../services/storage';
+import { toastSuccess, toastError, showError } from '../utils/sweetalert';
 
 const Admin = () => {
 const { user, logout } = useAuth();
@@ -19,7 +20,6 @@ const [selectedFile, setSelectedFile] = useState(null);
 const [previewUrl, setPreviewUrl] = useState(null);
 const [loading, setLoading] = useState(false);
 const [uploading, setUploading] = useState(false);
-const [message, setMessage] = useState({ type: '', text: '' });
 
 const handleChange = (e) => {
 setFormData({
@@ -34,13 +34,13 @@ const file = e.target.files[0];
 if (file) {
     // Validar que sea imagen
     if (!file.type.startsWith('image/')) {
-    setMessage({ type: 'error', text: '❌ Por favor seleccioná una imagen válida' });
+    toastError('Por favor seleccioná una imagen válida');
     return;
     }
 
     // Validar tamaño (5MB máximo)
     if (file.size > 5 * 1024 * 1024) {
-    setMessage({ type: 'error', text: '❌ La imagen no debe superar los 5MB' });
+    toastError('La imagen no debe superar los 5MB');
     return;
     }
 
@@ -52,29 +52,25 @@ if (file) {
     setPreviewUrl(reader.result);
     };
     reader.readAsDataURL(file);
-
-    setMessage({ type: '', text: '' });
 }
 };
 
 // Subir imagen a Firebase
 const handleUploadImage = async () => {
 if (!selectedFile) {
-    setMessage({ type: 'error', text: '❌ Seleccioná una imagen primero' });
+    toastError('Seleccioná una imagen primero');
     return;
 }
 
 setUploading(true);
-setMessage({ type: '', text: '' });
 
 try {
     const imageUrl = await uploadImage(selectedFile);
     setFormData({ ...formData, imagen: imageUrl });
-    setMessage({ type: 'success', text: '✅ Imagen subida exitosamente' });
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    toastSuccess('Imagen subida exitosamente ☁️');
 } catch (error) {
     console.error('Error:', error);
-    setMessage({ type: 'error', text: `❌ ${error.message}` });
+    showError('Error al subir imagen', error.message);
 } finally {
     setUploading(false);
 }
@@ -85,18 +81,17 @@ e.preventDefault();
 
 // Validar que haya imagen
 if (!formData.imagen) {
-    setMessage({ type: 'error', text: '❌ Debés subir una imagen o ingresar una URL' });
+    toastError('Debés subir una imagen o ingresar una URL');
     return;
 }
 
 setLoading(true);
-setMessage({ type: '', text: '' });
 
 try {
     await createProduct(formData);
     await fetchProducts();
     
-    setMessage({ type: 'success', text: '✅ Producto agregado correctamente' });
+    toastSuccess('Producto agregado correctamente 🎉');
     
     // Resetear formulario
     setFormData({
@@ -108,11 +103,9 @@ try {
     setSelectedFile(null);
     setPreviewUrl(null);
     setShowForm(false);
-    
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
 } catch (error) {
     console.error('Error al agregar producto:', error);
-    setMessage({ type: 'error', text: '❌ Error al agregar producto' });
+    showError('Error', 'No se pudo agregar el producto');
 } finally {
     setLoading(false);
 }
@@ -123,20 +116,21 @@ try {
     await logout();
 } catch (error) {
     console.error('Error al cerrar sesión:', error);
+    toastError('Error al cerrar sesión');
 }
 };
 
 return (
-<div className="min-h-screen bg-gray-50 py-12">
+<div className="min-h-screen bg-gray-light py-12">
     <div className="container mx-auto px-4">
     {/* Header */}
     <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
         <div className="flex items-center justify-between">
         <div>
-            <h1 className="text-3xl font-bold text-dark mb-2">
+            <h1 className="text-3xl font-bold text-dark mb-2 font-retro">
             Panel de Administración
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-custom font-sans">
             Bienvenido, <span className="font-semibold">{user?.email}</span>
             </p>
         </div>
@@ -149,24 +143,13 @@ return (
         </div>
     </div>
 
-    {/* Mensaje de éxito/error */}
-    {message.text && (
-        <div className={`mb-6 p-4 rounded-lg ${
-        message.type === 'success' 
-            ? 'bg-green-100 border border-green-400 text-green-700' 
-            : 'bg-red-100 border border-red-400 text-red-700'
-        }`}>
-        {message.text}
-        </div>
-    )}
-
     {/* Estadísticas */}
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between">
             <div>
-            <p className="text-gray-600 text-sm font-semibold">Total Productos</p>
-            <p className="text-3xl font-bold text-dark mt-1">{products.length}</p>
+            <p className="text-gray-custom text-sm font-semibold font-sans">Total Productos</p>
+            <p className="text-3xl font-bold text-dark mt-1 font-retro">{products.length}</p>
             </div>
             <div className="text-5xl">📦</div>
         </div>
@@ -175,8 +158,8 @@ return (
         <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between">
             <div>
-            <p className="text-gray-600 text-sm font-semibold">Productos Locales</p>
-            <p className="text-3xl font-bold text-dark mt-1">
+            <p className="text-gray-custom text-sm font-semibold font-sans">Productos Locales</p>
+            <p className="text-3xl font-bold text-dark mt-1 font-retro">
                 {products.filter(p => !p.imagen?.startsWith('http')).length}
             </p>
             </div>
@@ -187,8 +170,8 @@ return (
         <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between">
             <div>
-            <p className="text-gray-600 text-sm font-semibold">Firebase Storage</p>
-            <p className="text-3xl font-bold text-dark mt-1">
+            <p className="text-gray-custom text-sm font-semibold font-sans">Firebase Storage</p>
+            <p className="text-3xl font-bold text-dark mt-1 font-retro">
                 {products.filter(p => p.imagen?.startsWith('http')).length}
             </p>
             </div>
@@ -201,7 +184,7 @@ return (
     <div className="mb-8">
         <button
         onClick={() => setShowForm(!showForm)}
-        className="bg-primary hover:bg-red-600 text-white px-6 py-3 rounded-lg font-bold transition-colors"
+        className="bg-primary hover:bg-primary-dark text-dark px-6 py-3 rounded-lg font-bold transition-colors"
         >
         {showForm ? '❌ Cancelar' : '➕ Agregar Nuevo Producto'}
         </button>
@@ -210,13 +193,13 @@ return (
     {/* Formulario para agregar producto */}
     {showForm && (
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-        <h2 className="text-2xl font-bold text-dark mb-6">
+        <h2 className="text-2xl font-bold text-dark mb-6 font-retro">
             Nuevo Producto
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
                 Nombre del Producto *
                 </label>
                 <input
@@ -225,13 +208,13 @@ return (
                 value={formData.nombre}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans"
                 placeholder="Ej: Remera Mario"
                 />
             </div>
 
             <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
                 Precio *
                 </label>
                 <input
@@ -240,7 +223,7 @@ return (
                 value={formData.precio}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans"
                 placeholder="9900"
                 />
             </div>
@@ -248,16 +231,16 @@ return (
 
             {/* Sección de imagen mejorada */}
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-4">
+            <label className="block text-sm font-semibold text-gray-custom mb-4 font-sans">
                 Imagen del Producto *
             </label>
 
-            {/* Tabs para elegir método */}
+            {/* Botón para elegir archivo */}
             <div className="flex space-x-4 mb-4">
                 <button
                 type="button"
                 onClick={() => document.getElementById('fileInput').click()}
-                className="flex-1 bg-primary hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                className="flex-1 bg-primary hover:bg-primary-dark text-dark px-4 py-2 rounded-lg font-semibold transition-colors"
                 >
                 📤 Subir desde PC
                 </button>
@@ -275,7 +258,7 @@ return (
             {/* Preview de imagen */}
             {previewUrl && (
                 <div className="mt-4">
-                <p className="text-sm text-gray-600 mb-2">Vista previa:</p>
+                <p className="text-sm text-gray-custom mb-2 font-sans">Vista previa:</p>
                 <img 
                     src={previewUrl} 
                     alt="Preview" 
@@ -297,7 +280,7 @@ return (
                         setPreviewUrl(null);
                         setFormData({ ...formData, imagen: '' });
                     }}
-                    className="bg-gray-300 hover:bg-gray-400 text-dark px-4 py-2 rounded-lg font-semibold transition-colors"
+                    className="bg-gray-300 hover:bg-gray-custom hover:text-white text-dark px-4 py-2 rounded-lg font-semibold transition-colors"
                     >
                     🗑️ Eliminar
                     </button>
@@ -308,7 +291,7 @@ return (
             {/* Mostrar URL si ya se subió */}
             {formData.imagen && (
                 <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800 break-all">
+                <p className="text-sm text-green-800 break-all font-sans">
                     ✅ URL: {formData.imagen}
                 </p>
                 </div>
@@ -316,20 +299,20 @@ return (
 
             {/* Opción alternativa: URL manual */}
             <div className="mt-4">
-                <p className="text-sm text-gray-500 mb-2">O ingresá una URL manualmente:</p>
+                <p className="text-sm text-gray-500 mb-2 font-sans">O ingresá una URL manualmente:</p>
                 <input
                 type="text"
                 name="imagen"
                 value={formData.imagen}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans"
                 placeholder="https://... o images/remera.png"
                 />
             </div>
             </div>
 
             <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
                 Descripción *
             </label>
             <textarea
@@ -338,7 +321,7 @@ return (
                 onChange={handleChange}
                 required
                 rows="4"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none font-sans"
                 placeholder="Descripción del producto, talles disponibles, material, etc."
             />
             </div>
@@ -346,7 +329,7 @@ return (
             <button
             type="submit"
             disabled={loading || !formData.imagen}
-            className="w-full bg-primary hover:bg-red-600 text-white py-3 rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary hover:bg-primary-dark text-dark py-3 rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
             {loading ? 'Agregando...' : '✅ Agregar Producto'}
             </button>
@@ -356,7 +339,7 @@ return (
 
     {/* Lista de productos */}
     <div className="bg-white rounded-lg shadow-lg p-8">
-        <h2 className="text-2xl font-bold text-dark mb-6">
+        <h2 className="text-2xl font-bold text-dark mb-6 font-retro">
         Productos Existentes ({products.length})
         </h2>
         
@@ -364,11 +347,11 @@ return (
         <table className="w-full">
             <thead>
             <tr className="border-b-2 border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Imagen</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">ID</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Nombre</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Precio</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Tipo</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-custom font-sans">Imagen</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-custom font-sans">ID</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-custom font-sans">Nombre</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-custom font-sans">Precio</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-custom font-sans">Tipo</th>
             </tr>
             </thead>
             <tbody>
@@ -384,9 +367,9 @@ return (
                     }}
                     />
                 </td>
-                <td className="py-3 px-4 text-gray-600">{product.id}</td>
-                <td className="py-3 px-4 font-semibold text-dark">{product.nombre}</td>
-                <td className="py-3 px-4 text-primary font-bold">${product.precio}</td>
+                <td className="py-3 px-4 text-gray-custom font-sans">{product.id}</td>
+                <td className="py-3 px-4 font-semibold text-dark font-sans">{product.nombre}</td>
+                <td className="py-3 px-4 text-primary font-bold font-retro">${product.precio}</td>
                 <td className="py-3 px-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                     product.imagen?.startsWith('http')

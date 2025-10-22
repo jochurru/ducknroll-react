@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { sendOrderEmail } from '../services/email';
+import Swal from 'sweetalert2';
 
 const Checkout = () => {
 const { cart, getTotalPrice, clearCart } = useCart();
@@ -22,8 +23,6 @@ notas: ''
 
 const [loading, setLoading] = useState(false);
 const [error, setError] = useState('');
-const [showSuccessModal, setShowSuccessModal] = useState(false);
-const [orderId, setOrderId] = useState('');
 
 const handleChange = (e) => {
 setFormData({
@@ -38,7 +37,6 @@ setLoading(true);
 setError('');
 
 try {
-    // Crear objeto del pedido
     const orderData = {
     email: formData.email,
     cliente: {
@@ -61,48 +59,85 @@ try {
     fecha: new Date().toISOString()
     };
 
-    // Enviar email a través de Formspree
     await sendOrderEmail(orderData);
     
     console.log('Pedido enviado correctamente');
 
-    // Generar ID único para el pedido
     const newOrderId = `DK${Date.now()}`;
-    setOrderId(newOrderId);
 
-    // Mostrar modal de éxito
-    setShowSuccessModal(true);
-
-    // Limpiar carrito
     clearCart();
 
-    // Esperar 3 segundos y redirigir
-    setTimeout(() => {
+    // MOSTRAR SWEETALERT2 CON ANIMACIÓN
+    await Swal.fire({
+    icon: 'success',
+    title: '¡Pedido Confirmado!',
+    html: `
+        <div class="text-center">
+        <p class="text-gray-600 mb-2">Tu pedido ha sido procesado exitosamente</p>
+        <p class="text-sm text-gray-500 mb-4">
+            Número de pedido: <span class="font-bold" style="color: #FFD700;">#${newOrderId}</span>
+        </p>
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+            <p class="text-sm text-green-800">
+            📧 Te enviamos un email de confirmación con todos los detalles
+            </p>
+        </div>
+        <p class="text-gray-500 text-sm">
+            ¡Muchas gracias por tu compra! 🦆
+        </p>
+        </div>
+    `,
+    confirmButtonColor: '#FFD700',
+    confirmButtonText: 'Ver detalles del pedido',
+    allowOutsideClick: false,
+    customClass: {
+        popup: 'rounded-lg',
+        title: 'font-retro text-2xl',
+        confirmButton: 'font-bold px-6 py-3 rounded-lg'
+    },
+    showClass: {
+        popup: 'animate-fadeIn'
+    }
+    });
+
     navigate('/confirmacion', { 
-        state: { 
+    state: { 
         orderId: newOrderId,
         orderData 
-        } 
+    } 
     });
-    }, 3000);
 
 } catch (error) {
     console.error('Error al procesar pedido:', error);
+    
+    // MOSTRAR ERROR CON SWEETALERT2
+    Swal.fire({
+    icon: 'error',
+    title: 'Error al procesar',
+    text: 'Hubo un error al procesar tu pedido. Por favor, intentá nuevamente.',
+    confirmButtonColor: '#FFD700',
+    confirmButtonText: 'Entendido',
+    customClass: {
+        title: 'font-retro text-xl',
+        confirmButton: 'font-bold px-6 py-3 rounded-lg'
+    }
+    });
+    
     setError('Hubo un error al procesar tu pedido. Por favor, intentá nuevamente.');
 } finally {
     setLoading(false);
 }
 };
 
-if (cart.length === 0 && !showSuccessModal) {
+if (cart.length === 0) {
 navigate('/carrito');
 return null;
 }
 
 return (
-<div className="min-h-screen bg-gray-50 py-12">
+<div className="min-h-screen bg-gray-light py-12">
     <div className="container mx-auto px-4">
-    <h1 className="text-4xl font-bold text-dark mb-8">
+    <h1 className="text-4xl font-bold text-dark mb-8 font-retro">
         💳 Finalizar Compra
     </h1>
 
@@ -110,52 +145,6 @@ return (
     {error && (
         <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
         {error}
-        </div>
-    )}
-
-    {/* Modal de éxito */}
-    {showSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 text-center animate-fadeIn">
-            {/* Animación de check */}
-            <div className="mb-6">
-            <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-                <svg className="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
-                </svg>
-            </div>
-            </div>
-
-            <h2 className="text-3xl font-bold text-dark mb-4">
-            ¡Pedido Confirmado!
-            </h2>
-
-            <p className="text-gray-600 mb-2">
-            Tu pedido ha sido procesado exitosamente
-            </p>
-
-            <p className="text-sm text-gray-500 mb-6">
-            Número de pedido: <span className="font-bold text-primary">#{orderId}</span>
-            </p>
-
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-green-800">
-                📧 Te enviamos un email de confirmación con todos los detalles
-            </p>
-            </div>
-
-            <p className="text-gray-500 text-sm">
-            ¡Muchas gracias por tu compra! 🦆
-            </p>
-
-            {/* Barra de progreso */}
-            <div className="mt-6">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-primary h-2 rounded-full animate-progress" style={{width: '100%'}}></div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Redirigiendo...</p>
-            </div>
-        </div>
         </div>
     )}
 
@@ -170,7 +159,7 @@ return (
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-custom mb-2">
                     Nombre *
                 </label>
                 <input
@@ -184,7 +173,7 @@ return (
                 </div>
 
                 <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-custom mb-2">
                     Apellido *
                 </label>
                 <input
@@ -198,7 +187,7 @@ return (
                 </div>
 
                 <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-custom mb-2">
                     Email *
                 </label>
                 <input
@@ -212,7 +201,7 @@ return (
                 </div>
 
                 <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-custom mb-2">
                     Teléfono *
                 </label>
                 <input
@@ -235,7 +224,7 @@ return (
             </h2>
             <div className="space-y-4">
                 <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-custom mb-2">
                     Dirección *
                 </label>
                 <input
@@ -251,7 +240,7 @@ return (
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-custom mb-2">
                     Ciudad *
                     </label>
                     <input
@@ -265,7 +254,7 @@ return (
                 </div>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-custom mb-2">
                     Código Postal *
                     </label>
                     <input
@@ -300,7 +289,7 @@ return (
             <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-red-600 text-white py-4 rounded-lg font-bold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary hover:bg-primary-dark text-dark py-4 rounded-lg font-bold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
             {loading ? (
                 <span className="flex items-center justify-center">
@@ -324,7 +313,7 @@ return (
             <div className="space-y-4 mb-6">
             {cart.map((item) => (
                 <div key={item.id} className="flex justify-between text-sm">
-                <span className="text-gray-600">
+                <span className="text-gray-custom font-sans">
                     {item.nombre} x {item.quantity}
                 </span>
                 <span className="font-semibold">
@@ -334,22 +323,22 @@ return (
             ))}
             </div>
 
-            <div className="border-t border-gray-200 pt-4 space-y-3">
-            <div className="flex justify-between text-gray-600">
+            <div className="border-t border-gray-light pt-4 space-y-3">
+            <div className="flex justify-between text-gray-custom">
                 <span>Subtotal</span>
                 <span className="font-semibold">${getTotalPrice().toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between text-gray-custom">
                 <span>Envío</span>
                 <span className="font-semibold text-green-600">GRATIS</span>
             </div>
             <div className="flex justify-between text-2xl font-bold text-dark">
                 <span>Total</span>
-                <span className="text-primary">${getTotalPrice().toFixed(2)}</span>
+                <span className="text-primary font-retro">${getTotalPrice().toFixed(2)}</span>
             </div>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-200 space-y-3 text-sm text-gray-600">
+            <div className="mt-6 pt-6 border-t border-gray-light space-y-3 text-sm text-gray-custom">
             <div className="flex items-center space-x-2">
                 <span>🔒</span>
                 <span>Pago 100% seguro</span>
