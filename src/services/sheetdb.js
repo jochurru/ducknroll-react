@@ -27,25 +27,20 @@ throw error;
 // Función mejorada para crear un nuevo producto
 export const createProduct = async (productData) => {
 try {
-// Obtener todos los productos para calcular el próximo ID
 const allProducts = await getProducts();
 
-// Encontrar el ID más alto
 const maxId = allProducts.reduce((max, product) => {
     const currentId = parseInt(product.id) || 0;
     return currentId > max ? currentId : max;
 }, 0);
 
-// Asignar el siguiente ID
 const newId = maxId + 1;
 
-// Agregar el ID al producto
 const productWithId = {
     id: newId.toString(),
     ...productData
 };
 
-// Crear el producto en SheetDB
 const response = await axios.post(SHEETDB_API, {
     data: productWithId
 });
@@ -54,6 +49,33 @@ console.log('Producto creado con ID:', newId);
 return response.data;
 } catch (error) {
 console.error('Error al crear producto:', error);
+throw error;
+}
+};
+
+// NUEVA: Función para actualizar un producto
+export const updateProduct = async (id, productData) => {
+try {
+const response = await axios.patch(
+    `${SHEETDB_API}/id/${id}`,
+    { data: productData }
+);
+console.log('Producto actualizado:', id);
+return response.data;
+} catch (error) {
+console.error('Error al actualizar producto:', error);
+throw error;
+}
+};
+
+// NUEVA: Función para eliminar un producto
+export const deleteProduct = async (id) => {
+try {
+const response = await axios.delete(`${SHEETDB_API}/id/${id}`);
+console.log('Producto eliminado:', id);
+return response.data;
+} catch (error) {
+console.error('Error al eliminar producto:', error);
 throw error;
 }
 };

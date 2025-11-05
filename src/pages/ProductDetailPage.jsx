@@ -15,6 +15,7 @@ const [loading, setLoading] = useState(true);
 const [quantity, setQuantity] = useState(1);
 
 useEffect(() => {
+window.scrollTo(0, 0);
 const fetchProduct = async () => {
 try {
     setLoading(true);

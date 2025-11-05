@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductContext';
-import { createProduct } from '../services/sheetdb';
+import { createProduct, updateProduct, deleteProduct } from '../services/sheetdb';
 import { uploadImage } from '../services/storage';
-import { toastSuccess, toastError, showError } from '../utils/sweetalert';
+import { toastSuccess, toastError, showError, showConfirm } from '../utils/sweetalert';
 
 const Admin = () => {
 const { user, logout } = useAuth();
 const { products, fetchProducts, getImagePath } = useProducts();
 
 const [showForm, setShowForm] = useState(false);
+const [editingProduct, setEditingProduct] = useState(null);
 const [formData, setFormData] = useState({
 nombre: '',
 precio: '',
@@ -32,13 +33,11 @@ setFormData({
 const handleFileChange = (e) => {
 const file = e.target.files[0];
 if (file) {
-    // Validar que sea imagen
     if (!file.type.startsWith('image/')) {
     toastError('Por favor seleccioná una imagen válida');
     return;
     }
 
-    // Validar tamaño (5MB máximo)
     if (file.size > 5 * 1024 * 1024) {
     toastError('La imagen no debe superar los 5MB');
     return;
@@ -46,7 +45,6 @@ if (file) {
 
     setSelectedFile(file);
     
-    // Crear preview
     const reader = new FileReader();
     reader.onloadend = () => {
     setPreviewUrl(reader.result);
@@ -76,10 +74,39 @@ try {
 }
 };
 
+// Abrir formulario para editar
+const handleEdit = (product) => {
+setEditingProduct(product);
+setFormData({
+    nombre: product.nombre,
+    precio: product.precio,
+    imagen: product.imagen,
+    descripcion: product.descripcion
+});
+setPreviewUrl(null);
+setSelectedFile(null);
+setShowForm(true);
+window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Cancelar edición
+const handleCancel = () => {
+setShowForm(false);
+setEditingProduct(null);
+setFormData({
+    nombre: '',
+    precio: '',
+    imagen: '',
+    descripcion: ''
+});
+setSelectedFile(null);
+setPreviewUrl(null);
+};
+
+// Enviar formulario (crear o editar)
 const handleSubmit = async (e) => {
 e.preventDefault();
 
-// Validar que haya imagen
 if (!formData.imagen) {
     toastError('Debés subir una imagen o ingresar una URL');
     return;
@@ -88,26 +115,42 @@ if (!formData.imagen) {
 setLoading(true);
 
 try {
+    if (editingProduct) {
+    // EDITAR producto existente
+    await updateProduct(editingProduct.id, formData);
+    toastSuccess('Producto actualizado correctamente ✏️');
+    } else {
+    // CREAR producto nuevo
     await createProduct(formData);
-    await fetchProducts();
-    
     toastSuccess('Producto agregado correctamente 🎉');
+    }
     
-    // Resetear formulario
-    setFormData({
-    nombre: '',
-    precio: '',
-    imagen: '',
-    descripcion: ''
-    });
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setShowForm(false);
+    await fetchProducts();
+    handleCancel();
 } catch (error) {
-    console.error('Error al agregar producto:', error);
-    showError('Error', 'No se pudo agregar el producto');
+    console.error('Error:', error);
+    showError('Error', editingProduct ? 'No se pudo actualizar el producto' : 'No se pudo agregar el producto');
 } finally {
     setLoading(false);
+}
+};
+
+// Eliminar producto
+const handleDelete = async (product) => {
+const result = await showConfirm(
+    '¿Eliminar producto?',
+    `¿Estás seguro de eliminar "${product.nombre}"? Esta acción no se puede deshacer.`
+);
+
+if (result.isConfirmed) {
+    try {
+    await deleteProduct(product.id);
+    await fetchProducts();
+    toastSuccess('Producto eliminado correctamente 🗑️');
+    } catch (error) {
+    console.error('Error:', error);
+    showError('Error', 'No se pudo eliminar el producto');
+    }
 }
 };
 
@@ -181,20 +224,22 @@ return (
     </div>
 
     {/* Botón para agregar producto */}
-    <div className="mb-8">
+    {!showForm && (
+        <div className="mb-8">
         <button
-        onClick={() => setShowForm(!showForm)}
-        className="bg-primary hover:bg-primary-dark text-dark px-6 py-3 rounded-lg font-bold transition-colors"
+            onClick={() => setShowForm(true)}
+            className="bg-primary hover:bg-primary-dark text-dark px-6 py-3 rounded-lg font-bold transition-colors"
         >
-        {showForm ? '❌ Cancelar' : '➕ Agregar Nuevo Producto'}
+            ➕ Agregar Nuevo Producto
         </button>
-    </div>
+        </div>
+    )}
 
-    {/* Formulario para agregar producto */}
+    {/* Formulario para agregar/editar producto */}
     {showForm && (
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
         <h2 className="text-2xl font-bold text-dark mb-6 font-retro">
-            Nuevo Producto
+            {editingProduct ? '✏️ Editar Producto' : '➕ Nuevo Producto'}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -229,13 +274,12 @@ return (
             </div>
             </div>
 
-            {/* Sección de imagen mejorada */}
+            {/* Sección de imagen */}
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
             <label className="block text-sm font-semibold text-gray-custom mb-4 font-sans">
                 Imagen del Producto *
             </label>
 
-            {/* Botón para elegir archivo */}
             <div className="flex space-x-4 mb-4">
                 <button
                 type="button"
@@ -246,7 +290,6 @@ return (
                 </button>
             </div>
 
-            {/* Input de archivo (oculto) */}
             <input
                 id="fileInput"
                 type="file"
@@ -255,7 +298,6 @@ return (
                 className="hidden"
             />
 
-            {/* Preview de imagen */}
             {previewUrl && (
                 <div className="mt-4">
                 <p className="text-sm text-gray-custom mb-2 font-sans">Vista previa:</p>
@@ -278,7 +320,9 @@ return (
                     onClick={() => {
                         setSelectedFile(null);
                         setPreviewUrl(null);
+                        if (!editingProduct) {
                         setFormData({ ...formData, imagen: '' });
+                        }
                     }}
                     className="bg-gray-300 hover:bg-gray-custom hover:text-white text-dark px-4 py-2 rounded-lg font-semibold transition-colors"
                     >
@@ -288,7 +332,17 @@ return (
                 </div>
             )}
 
-            {/* Mostrar URL si ya se subió */}
+            {formData.imagen && !previewUrl && (
+                <div className="mt-4">
+                <p className="text-sm text-gray-custom mb-2 font-sans">Imagen actual:</p>
+                <img 
+                    src={getImagePath(formData.imagen)} 
+                    alt="Actual" 
+                    className="w-40 h-40 object-cover rounded-lg border-2 border-gray-300"
+                />
+                </div>
+            )}
+
             {formData.imagen && (
                 <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-sm text-green-800 break-all font-sans">
@@ -297,7 +351,6 @@ return (
                 </div>
             )}
 
-            {/* Opción alternativa: URL manual */}
             <div className="mt-4">
                 <p className="text-sm text-gray-500 mb-2 font-sans">O ingresá una URL manualmente:</p>
                 <input
@@ -326,13 +379,22 @@ return (
             />
             </div>
 
+            <div className="flex space-x-4">
             <button
-            type="submit"
-            disabled={loading || !formData.imagen}
-            className="w-full bg-primary hover:bg-primary-dark text-dark py-3 rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                type="submit"
+                disabled={loading || !formData.imagen}
+                className="flex-1 bg-primary hover:bg-primary-dark text-dark py-3 rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-            {loading ? 'Agregando...' : '✅ Agregar Producto'}
+                {loading ? 'Guardando...' : (editingProduct ? '✅ Actualizar Producto' : '✅ Agregar Producto')}
             </button>
+            <button
+                type="button"
+                onClick={handleCancel}
+                className="px-6 bg-gray-300 hover:bg-gray-custom hover:text-white text-dark py-3 rounded-lg font-bold transition-colors"
+            >
+                Cancelar
+            </button>
+            </div>
         </form>
         </div>
     )}
@@ -352,6 +414,7 @@ return (
                 <th className="text-left py-3 px-4 font-semibold text-gray-custom font-sans">Nombre</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-custom font-sans">Precio</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-custom font-sans">Tipo</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-custom font-sans">Acciones</th>
             </tr>
             </thead>
             <tbody>
@@ -378,6 +441,24 @@ return (
                     }`}>
                     {product.imagen?.startsWith('http') ? '☁️ Firebase' : '📁 Local'}
                     </span>
+                </td>
+                <td className="py-3 px-4">
+                    <div className="flex space-x-2">
+                    <button
+                        onClick={() => handleEdit(product)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-semibold transition-colors"
+                        title="Editar producto"
+                    >
+                        ✏️
+                    </button>
+                    <button
+                        onClick={() => handleDelete(product)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold transition-colors"
+                        title="Eliminar producto"
+                    >
+                        🗑️
+                    </button>
+                    </div>
                 </td>
                 </tr>
             ))}
