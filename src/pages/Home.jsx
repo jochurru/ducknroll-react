@@ -2,10 +2,13 @@ import { Link } from 'react-router-dom';
 import { useProducts } from '../context/ProductContext';
 import ProductCard from '../components/products/ProductCard';
 import logo from '../assets/images/logo1.png';
-
+import { useEffect } from 'react';
 const Home = () => {
 const { products, loading } = useProducts();
 const featuredProducts = products.slice(0, 6);
+useEffect(() => {
+    window.scrollTo(0, 0);
+}, []);
 
 return (
 <div className="min-h-screen">
