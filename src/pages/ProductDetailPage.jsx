@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
 import { toastSuccess } from '../utils/sweetalert';
+import { ProductDetailSkeleton } from '../components/Skeleton';
 
 const ProductDetailPage = () => {
 const { id } = useParams();
@@ -16,16 +17,17 @@ const [quantity, setQuantity] = useState(1);
 
 useEffect(() => {
 window.scrollTo(0, 0);
+
 const fetchProduct = async () => {
-try {
+    try {
     setLoading(true);
     const data = await getProduct(id);
     setProduct(data);
-} catch (error) {
+    } catch (error) {
     console.error('Error al cargar producto:', error);
-} finally {
+    } finally {
     setLoading(false);
-}
+    }
 };
 
 fetchProduct();
@@ -38,24 +40,28 @@ toastSuccess(`${quantity} ${product.nombre}${quantity > 1 ? 's' : ''} agregado${
 
 if (loading) {
 return (
-<div className="min-h-screen flex items-center justify-center">
-    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-primary"></div>
-</div>
+    <div className="min-h-screen bg-gray-light py-12">
+    <div className="container mx-auto px-4">
+        <div className="mb-8 h-6 bg-gray-300 rounded w-64 animate-pulse"></div>
+        <ProductDetailSkeleton />
+    </div>
+    </div>
 );
 }
 
 if (!product) {
 return (
-<div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center">
     <div className="text-center">
-    <h2 className="text-2xl font-bold text-dark mb-4">
+        <div className="text-6xl mb-4">😢</div>
+        <h2 className="text-2xl font-bold text-dark mb-4">
         Producto no encontrado
-    </h2>
-    <Link to="/productos" className="text-primary hover:underline">
+        </h2>
+        <Link to="/productos" className="text-primary hover:underline">
         Volver a productos
-    </Link>
+        </Link>
     </div>
-</div>
+    </div>
 );
 }
 

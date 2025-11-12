@@ -1,13 +1,16 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useProducts } from '../context/ProductContext';
 import ProductCard from '../components/products/ProductCard';
+import { ProductCardSkeleton } from '../components/Skeleton';
 import logo from '../assets/images/logo1.png';
-import { useEffect } from 'react';
+
 const Home = () => {
 const { products, loading } = useProducts();
 const featuredProducts = products.slice(0, 6);
+
 useEffect(() => {
-    window.scrollTo(0, 0);
+window.scrollTo(0, 0);
 }, []);
 
 return (
@@ -19,13 +22,13 @@ return (
         <img 
             src={logo} 
             alt="Duck'n Roll Logo" 
-            className="h-44 w-auto"
+            className="h-52 w-auto"
         />
         </div>
-        <h1 className="text-5xl md:text-6xl font-retro mb-6">
+        <h1 className="text-5xl md:text-6xl font-bold mb-6 font-retro">
         Duck'n Roll
         </h1>
-        <p className="text-xl md:text-2xl mb-8">
+        <p className="text-xl md:text-2xl mb-8 font-sans">
         Remeras con diseños exclusivos de cultura retro y gaming
         </p>
         <Link 
@@ -40,16 +43,19 @@ return (
     {/* Productos destacados */}
     <section className="py-16 bg-gray-light">
     <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12 text-dark">
+        <h2 className="text-3xl font-bold text-center mb-12 text-dark font-retro">
         Productos Destacados
         </h2>
 
         {loading ? (
-        <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-primary mx-auto mb-4"></div>
-            <p className="text-gray-custom">Cargando productos...</p>
+        // SKELETON LOADING
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+            <ProductCardSkeleton key={i} />
+            ))}
         </div>
         ) : (
+        // PRODUCTOS
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredProducts.map(product => (
             <ProductCard key={product.id} product={product} />
@@ -71,28 +77,28 @@ return (
     {/* Sección Sobre Nosotros */}
     <section className="py-16 bg-white">
     <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl font-bold mb-6 text-dark">
+        <h2 className="text-3xl font-bold mb-6 text-dark font-retro">
         ¿Por qué Duck'n Roll?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
         <div className="p-6">
             <div className="text-5xl mb-4">🎨</div>
             <h3 className="text-xl font-bold mb-2">Diseños Exclusivos</h3>
-            <p className="text-gray-custom">
+            <p className="text-gray-custom font-sans">
             Cada remera tiene un diseño único inspirado en la cultura retro y gaming.
             </p>
         </div>
         <div className="p-6">
             <div className="text-5xl mb-4">👕</div>
             <h3 className="text-xl font-bold mb-2">Alta Calidad</h3>
-            <p className="text-gray-custom">
+            <p className="text-gray-custom font-sans">
             100% algodón orgánico. Comodidad y durabilidad garantizada.
             </p>
         </div>
         <div className="p-6">
             <div className="text-5xl mb-4">🚚</div>
             <h3 className="text-xl font-bold mb-2">Envío Rápido</h3>
-            <p className="text-gray-custom">
+            <p className="text-gray-custom font-sans">
             Enviamos a todo el país. Recibí tu remera en pocos días.
             </p>
         </div>
