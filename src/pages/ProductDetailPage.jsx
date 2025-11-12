@@ -114,7 +114,6 @@ return (
                 onClick={() => setQuantity(quantity + 1)}
                 className="bg-gray-light hover:bg-gray-custom hover:text-white w-10 h-10 rounded-lg font-bold transition-colors"
             >
-                +
             </button>
             </div>
         </div>
