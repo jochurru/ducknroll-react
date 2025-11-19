@@ -1,5 +1,6 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react';
-import { getProducts, getProductById } from '../services/sheetdb';
+import { getProducts, getProductById } from '../services/mockapi';
 
 // Crear el contexto
 const ProductContext = createContext();
@@ -68,7 +69,7 @@ if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
 try {
     const fileName = imagePath.split('/').pop();
     return new URL(`../assets/images/${fileName}`, import.meta.url).href;
-} catch (error) {
+} catch (_error) {
     console.error('Error cargando imagen:', imagePath);
     return null;
 }

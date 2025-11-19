@@ -1,7 +1,7 @@
     import { useState, useEffect } from 'react';
     import { useAuth } from '../context/AuthContext';
     import { useProducts } from '../context/ProductContext';
-    import { createProduct, updateProduct, deleteProduct } from '../services/sheetdb';
+    import { createProduct, updateProduct, deleteProduct } from '../services/mockapi';
     import { uploadImage } from '../services/storage';
     import { toastSuccess, toastError, showError, showConfirm } from '../utils/sweetalert';
 
