@@ -77,7 +77,7 @@ const Cart = () => {
                   <img
                     src={getImagePath(item.imagen)}
                     alt={item.nombre}
-                    className="max-w-[85%] max-h-[85%] object-contain"
+                    className="max-w-[85%] max-h-[85%] object-contain mix-blend-multiply"
                     onError={(e) => { e.target.src = 'https://via.placeholder.com/100x100?text=?'; }}
                   />
                 </div>

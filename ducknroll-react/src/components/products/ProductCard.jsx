@@ -28,7 +28,7 @@ const ProductCard = ({ product }) => {
           <img
             src={getImagePath(product.imagen)}
             alt={product.nombre}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 p-4"
+            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500 p-4"
             onError={(e) => {
               e.target.src = 'https://via.placeholder.com/400x400?text=Duck%27n+Roll';
             }}

@@ -121,7 +121,7 @@ const ProductDetailPage = () => {
               <img
                 src={getImagePath(product.imagen)}
                 alt={product.nombre}
-                className="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] object-contain hover:scale-105 transition-transform duration-300"
+                className="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] object-contain mix-blend-multiply hover:scale-105 transition-transform duration-300"
                 onError={(e) => {
                   e.target.src = 'https://via.placeholder.com/500x500?text=Duck%27n+Roll';
                 }}
