@@ -15,6 +15,10 @@ const ProductCard = ({ product }) => {
 
   const productInCart = isInCart(product.id);
   const isPremium = parseFloat(product.precio) > 15000;
+  
+  // Soporte para etiqueta administrable
+  const hasEtiquetaDefined = product.etiqueta !== undefined;
+  const etiquetaToShow = hasEtiquetaDefined ? product.etiqueta : (isPremium ? '💎 Premium' : '🏷️ Oferta');
 
   return (
     <Link to={`/producto/${product.id}`} className="group">
@@ -31,17 +35,17 @@ const ProductCard = ({ product }) => {
           />
 
           {/* Badges Estéticos */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {isPremium ? (
-              <span className="bg-secondary text-primary text-xs font-bold uppercase px-3 py-1 rounded-full shadow-sm font-sans tracking-wide">
-                💎 Premium
+          {etiquetaToShow && (
+            <div className="absolute top-3 left-3 flex flex-col gap-2">
+              <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full shadow-sm font-sans tracking-wide ${
+                etiquetaToShow.includes('Premium') || etiquetaToShow.includes('💎')
+                  ? 'bg-secondary text-primary'
+                  : 'bg-primary text-dark neon-glow-yellow'
+              }`}>
+                {etiquetaToShow}
               </span>
-            ) : (
-              <span className="bg-primary text-dark text-xs font-bold uppercase px-3 py-1 rounded-full shadow-sm font-sans tracking-wide neon-glow-yellow">
-                🏷️ Oferta
-              </span>
-            )}
-          </div>
+            </div>
+          )}
 
           {productInCart && (
             <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm font-sans flex items-center gap-1">

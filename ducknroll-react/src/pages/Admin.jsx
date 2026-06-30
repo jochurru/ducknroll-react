@@ -15,7 +15,8 @@ const Admin = () => {
         nombre: '',
         precio: '',
         imagen: '',
-        descripcion: ''
+        descripcion: '',
+        etiqueta: ''
     });
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -92,7 +93,8 @@ const Admin = () => {
         nombre: product.nombre,
         precio: product.precio,
         imagen: product.imagen,
-        descripcion: product.descripcion
+        descripcion: product.descripcion,
+        etiqueta: product.etiqueta || ''
         });
         setPreviewUrl(null);
         setSelectedFile(null);
@@ -107,7 +109,8 @@ const Admin = () => {
         nombre: '',
         precio: '',
         imagen: '',
-        descripcion: ''
+        descripcion: '',
+        etiqueta: ''
         });
         setSelectedFile(null);
         setPreviewUrl(null);
@@ -442,6 +445,31 @@ const Admin = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none font-sans text-sm md:text-base"
                     placeholder="Descripción, talles, material..."
                     />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
+                    Etiqueta / Leyenda (Opcional)
+                    </label>
+                    <input
+                    type="text"
+                    name="etiqueta"
+                    value={formData.etiqueta || ''}
+                    onChange={handleChange}
+                    list="etiqueta-suggestions"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-sm md:text-base shadow-sm"
+                    placeholder="Ej: 🏷️ Oferta, 💎 Premium, 🔥 Nuevo, o dejar vacío..."
+                    />
+                    <datalist id="etiqueta-suggestions">
+                      <option value="🏷️ Oferta" />
+                      <option value="💎 Premium" />
+                      <option value="🔥 Nuevo" />
+                      <option value="✨ Edición Limitada" />
+                      <option value="👕 Últimas Unidades" />
+                    </datalist>
+                    <p className="text-xs text-gray-500 mt-1 font-sans">
+                      Elige una sugerencia de la lista o escribe tu propio texto libre. Déjalo en blanco para no mostrar ninguna insignia.
+                    </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">

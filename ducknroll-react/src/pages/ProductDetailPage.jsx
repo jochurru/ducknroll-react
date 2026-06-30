@@ -41,6 +41,10 @@ const ProductDetailPage = () => {
 
   const productInCart = isInCart(id);
   const isPremium = product && parseFloat(product.precio) > 15000;
+  
+  // Soporte para etiqueta administrable
+  const hasEtiquetaDefined = product && product.etiqueta !== undefined;
+  const etiquetaToShow = product && (hasEtiquetaDefined ? product.etiqueta : (isPremium ? '💎 Premium' : '🏷️ Oferta'));
   const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
   if (loading) {
@@ -98,13 +102,13 @@ const ProductDetailPage = () => {
                   e.target.src = 'https://via.placeholder.com/500x500?text=Duck%27n+Roll';
                 }}
               />
-              {isPremium ? (
-                <span className="absolute top-4 left-4 bg-secondary text-primary text-xs font-bold uppercase px-3 py-1.5 rounded-full shadow-md font-sans tracking-wide">
-                  💎 Colección Premium
-                </span>
-              ) : (
-                <span className="absolute top-4 left-4 bg-primary text-dark text-xs font-bold uppercase px-3 py-1.5 rounded-full shadow-md font-sans tracking-wide neon-glow-yellow">
-                  🏷️ Colección Oferta
+              {etiquetaToShow && (
+                <span className={`absolute top-4 left-4 text-xs font-bold uppercase px-3 py-1.5 rounded-full shadow-md font-sans tracking-wide ${
+                  etiquetaToShow.includes('Premium') || etiquetaToShow.includes('💎')
+                    ? 'bg-secondary text-primary'
+                    : 'bg-primary text-dark neon-glow-yellow'
+                }`}>
+                  {etiquetaToShow}
                 </span>
               )}
             </div>

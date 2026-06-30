@@ -86,7 +86,7 @@ export const getProductById = async (req, res) => {
  */
 export const createProduct = async (req, res) => {
   try {
-    const { nombre, precio, imagen, descripcion } = req.body;
+    const { nombre, precio, imagen, descripcion, etiqueta } = req.body;
 
     // Validación básica de campos requeridos
     if (!nombre || precio === undefined || !imagen) {
@@ -100,6 +100,7 @@ export const createProduct = async (req, res) => {
       precio: Number(precio),
       imagen,
       descripcion: descripcion || '',
+      etiqueta: etiqueta || '',
       createdAt: new Date().toISOString()
     };
 
@@ -120,7 +121,7 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, precio, imagen, descripcion } = req.body;
+    const { nombre, precio, imagen, descripcion, etiqueta } = req.body;
 
     const docRef = db.collection('productos').doc(id);
     const doc = await docRef.get();
@@ -134,6 +135,7 @@ export const updateProduct = async (req, res) => {
     if (precio !== undefined) updateData.precio = Number(precio);
     if (imagen !== undefined) updateData.imagen = imagen;
     if (descripcion !== undefined) updateData.descripcion = descripcion;
+    if (etiqueta !== undefined) updateData.etiqueta = etiqueta;
     updateData.updatedAt = new Date().toISOString();
 
     await docRef.update(updateData);
