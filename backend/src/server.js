@@ -49,9 +49,11 @@ app.get('/api/health', (req, res) => {
 
 import productRoutes from './routes/productRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
 
 app.use('/api/productos', productRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/contacto', contactRoutes);
 
 // Manejo de rutas no encontradas (404)
 app.use((req, res, next) => {

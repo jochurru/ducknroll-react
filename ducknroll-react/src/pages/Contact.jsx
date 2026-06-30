@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaEnvelope, FaWhatsapp, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
-import { toastSuccess } from '../utils/sweetalert';
+import { toastSuccess, toastError } from '../utils/sweetalert';
+import api from '../services/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -23,22 +24,30 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
-      console.log('Formulario enviado:', formData);
+    try {
+      await api.post('/contacto', {
+        nombre: formData.nombre,
+        email: formData.email,
+        mensaje: formData.mensaje
+      });
+
       toastSuccess('¡Mensaje enviado! Te responderemos muy pronto ✉️');
       setSubmitted(true);
+      setFormData({ nombre: '', email: '', mensaje: '' });
+      setTimeout(() => setSubmitted(false), 5000);
+    } catch (error) {
+      console.error('Error al enviar contacto:', error);
+      toastError(
+        error?.response?.data?.error ||
+        'No pudimos enviar tu mensaje. Intentá de nuevo o escribinos por WhatsApp.'
+      );
+    } finally {
       setLoading(false);
-      setFormData({
-        nombre: '',
-        email: '',
-        mensaje: ''
-      });
-      setTimeout(() => setSubmitted(false), 3000);
-    }, 1000);
+    }
   };
 
   return (
