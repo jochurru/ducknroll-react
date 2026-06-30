@@ -117,10 +117,10 @@ const ProductDetailPage = () => {
         {/* Ficha de producto */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 md:p-12">
-            {/* Columna Izquierda: Imagen */}
+            {/* Columna Izquierda: Imagen (Sticky y auto-ajustable a su contenido) */}
             <div 
               onClick={() => setIsZoomOpen(true)}
-              className="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-6 border border-gray-100 relative shadow-inner cursor-zoom-in group/image"
+              className="md:sticky md:top-28 self-start bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-6 border border-gray-100 relative shadow-inner cursor-zoom-in group/image"
               title="Hacé clic para ampliar la imagen"
             >
               <img
@@ -149,47 +149,47 @@ const ProductDetailPage = () => {
               )}
             </div>
 
-            {/* Columna Derecha: Lógica y Detalles */}
+            {/* Columna Derecha: Lógica y Detalles (Más compacta para evitar scroll excesivo) */}
             <div className="flex flex-col justify-between">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-dark mb-4 font-sans leading-tight">
+                <h1 className="text-2xl md:text-3xl font-bold text-dark mb-2 font-sans leading-tight">
                   {product.nombre}
                 </h1>
 
-                <p className="text-3xl font-bold text-dark mb-6 font-retro border-b pb-4">
+                <p className="text-2xl md:text-3xl font-bold text-dark mb-4 font-retro border-b pb-3">
                   ${parseFloat(product.precio).toLocaleString('es-AR')}
                 </p>
 
-                <p className="text-gray-custom mb-6 leading-relaxed font-sans text-sm md:text-base">
+                <p className="text-gray-custom mb-4 leading-relaxed font-sans text-xs md:text-sm">
                   {product.descripcion}
                 </p>
 
                 {/* Ficha Técnica: Categoría y Material */}
-                <div className="flex flex-wrap gap-3 mb-6 text-sm">
+                <div className="flex flex-wrap gap-2.5 mb-4 text-xs">
                   {product.categoria && product.categoria !== 'general' && (
-                    <div className="flex items-center gap-2 bg-gray-100 border border-gray-250 px-3 py-1.5 rounded-lg text-dark font-sans font-semibold shadow-sm">
+                    <div className="flex items-center gap-2 bg-gray-100 border border-gray-250 px-2.5 py-1 rounded-lg text-dark font-sans font-semibold shadow-sm">
                       <span>🏷️</span>
-                      <span>Categoría: <span className="uppercase text-xs font-bold text-gray-custom">{product.categoria}</span></span>
+                      <span>Categoría: <span className="uppercase text-[10px] font-bold text-gray-custom">{product.categoria}</span></span>
                     </div>
                   )}
                   {product.material && (
-                    <div className="flex items-center gap-2 bg-gray-100 border border-gray-250 px-3 py-1.5 rounded-lg text-dark font-sans font-semibold shadow-sm">
+                    <div className="flex items-center gap-2 bg-gray-100 border border-gray-250 px-2.5 py-1 rounded-lg text-dark font-sans font-semibold shadow-sm">
                       <span>🧵</span>
-                      <span>Composición: <span className="text-gray-custom">{product.material}</span></span>
+                      <span>Composición: <span className="text-gray-custom text-[11px]">{product.material}</span></span>
                     </div>
                   )}
                 </div>
 
                 {/* Selector de Talles Interactivo */}
                 <div className="mb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="block text-sm font-bold text-dark font-sans uppercase tracking-wide">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-bold text-dark font-sans uppercase tracking-wide">
                       Seleccionar Talle:
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowSizeGuide(true)}
-                      className="text-xs text-primary-dark hover:text-dark font-bold font-sans underline transition-colors"
+                      className="text-2xs text-primary-dark hover:text-dark font-bold font-sans underline transition-colors"
                     >
                       📐 Ver Guía de Talles
                     </button>
@@ -199,7 +199,7 @@ const ProductDetailPage = () => {
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`w-14 h-14 rounded-lg font-bold font-sans text-sm flex items-center justify-center border transition-all ${
+                        className={`w-11 h-11 rounded-lg font-bold font-sans text-xs flex items-center justify-center border transition-all ${
                           selectedSize === size
                             ? 'bg-primary border-primary text-dark shadow-md scale-105'
                             : 'bg-white hover:bg-gray-100 border-gray-300 text-gray-custom'
@@ -212,64 +212,62 @@ const ProductDetailPage = () => {
                 </div>
 
                 {/* Stock por Talle Seleccionado */}
-                <div className="mb-6">
+                <div className="mb-4">
                   {selectedSizeStock === 0 ? (
-                    <div className="flex items-center gap-2 text-red-600 font-sans font-bold text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2 w-max">
+                    <div className="flex items-center gap-1.5 text-red-600 font-sans font-bold text-xs bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5 w-max">
                       <span>❌</span>
                       <span>Sin Stock disponible en Talle {selectedSize}</span>
                     </div>
                   ) : selectedSizeStock <= 3 ? (
-                    <div className="flex items-center gap-2 text-amber-600 font-sans font-bold text-sm bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 w-max animate-pulse">
+                    <div className="flex items-center gap-1.5 text-amber-600 font-sans font-bold text-xs bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 w-max animate-pulse">
                       <span>⚠️</span>
                       <span>¡Últimas {selectedSizeStock} unidades en Talle {selectedSize}!</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-green-700 font-sans font-semibold text-sm bg-green-50 border border-green-200 rounded-lg px-3 py-2 w-max">
+                    <div className="flex items-center gap-1.5 text-green-700 font-sans font-semibold text-xs bg-green-50 border border-green-200 rounded-lg px-2.5 py-1.5 w-max">
                       <span>✓</span>
                       <span>Stock disponible: {selectedSizeStock} unidades ({selectedSize})</span>
                     </div>
                   )}
                 </div>
 
-                {/* Selector de Cantidad */}
-                <div className="mb-8">
-                  <label className="block text-sm font-bold text-dark mb-3 font-sans uppercase tracking-wide">
-                    Cantidad:
-                  </label>
-                  <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-1.5 w-max border border-gray-200">
+                {/* Acciones principales de compra agrupadas */}
+                <div className="flex flex-col sm:flex-row gap-3 mb-3">
+                  {/* Selector de Cantidad */}
+                  <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1 border border-gray-200 justify-between sm:justify-start w-full sm:w-auto flex-shrink-0">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       disabled={quantity <= 1 || selectedSizeStock === 0}
-                      className="bg-white hover:bg-gray-200 text-dark w-10 h-10 rounded-md font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center disabled:opacity-40"
+                      className="bg-white hover:bg-gray-200 text-dark w-9 h-9 rounded-md font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center disabled:opacity-40"
                     >
                       -
                     </button>
-                    <span className="text-lg font-bold w-12 text-center text-dark font-sans">
+                    <span className="text-base font-bold w-8 text-center text-dark font-sans">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
                       disabled={quantity >= selectedSizeStock || selectedSizeStock === 0}
-                      className="bg-white hover:bg-gray-200 text-dark w-10 h-10 rounded-md font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center disabled:opacity-40"
+                      className="bg-white hover:bg-gray-200 text-dark w-9 h-9 rounded-md font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center disabled:opacity-40"
                     >
                       +
                     </button>
                   </div>
-                </div>
-              </div>
 
-              {/* Botones de acción */}
-              <div className="space-y-4">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={selectedSizeStock === 0}
-                  className="w-full bg-primary hover:bg-primary-dark text-dark py-4 rounded-xl font-bold text-base transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] retro-shadow-sm shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {selectedSizeStock === 0 ? '❌ Sin stock disponible' : (productInCart ? 'Agregar más al carrito 🛒' : 'Agregar al carrito 🛒')}
-                </button>
+                  {/* Botón de Agregar al carrito */}
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={selectedSizeStock === 0}
+                    className="flex-grow bg-primary hover:bg-primary-dark text-dark py-3.5 px-6 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] retro-shadow-sm shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {selectedSizeStock === 0 ? '❌ Sin stock disponible' : (productInCart ? 'Agregar más al carrito 🛒' : 'Agregar al carrito 🛒')}
+                  </button>
+                </div>
+
+                {/* Botón de seguir comprando (más discreto) */}
                 <button
                   onClick={() => navigate('/productos')}
-                  className="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-custom py-4 rounded-xl font-bold text-base transition-all duration-200"
+                  className="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-custom py-2.5 rounded-xl font-bold text-xs transition-all duration-200"
                 >
                   Seguir comprando
                 </button>
