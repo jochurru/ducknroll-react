@@ -1,67 +1,33 @@
-import axios from 'axios';
+import api from './api';
 
-// Tu endpoint de Formspree
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpwyepwj';
+/**
+ * Envía el email de confirmación de compra al admin y al cliente
+ * a través del backend con Nodemailer.
+ * 
+ * @param {Object} orderData - Datos del pedido provenientes del Checkout
+ * @param {string} orderId - Número de pedido generado en el Checkout
+ */
+export const sendOrderEmail = async (orderData, orderId) => {
+  try {
+    const payload = {
+      email: orderData.email,
+      cliente: orderData.cliente,
+      productos: orderData.productos.map(p => ({
+        nombre: p.nombre,
+        talle: p.talle || p.talleSeleccionado || '-',
+        cantidad: p.cantidad,
+        subtotal: p.subtotal
+      })),
+      total: orderData.total,
+      notas: orderData.notas || '',
+      fecha: orderData.fecha || new Date().toISOString(),
+      orderId: orderId || null
+    };
 
-export const sendOrderEmail = async (orderData) => {
-try {
-const emailData = {
-    // Formspree recibe estos campos
-    subject: `Nuevo Pedido - Duck'n Roll #${Date.now()}`,
-    message: `
-==========================================
-🦆 NUEVO PEDIDO - DUCK'N ROLL
-==========================================
-
-📋 DATOS DEL CLIENTE
-------------------------------------------
-Nombre: ${orderData.cliente.nombre} ${orderData.cliente.apellido}
-Email: ${orderData.email}
-Teléfono: ${orderData.cliente.telefono}
-
-📦 DIRECCIÓN DE ENVÍO
-------------------------------------------
-Dirección: ${orderData.cliente.direccion}
-Ciudad: ${orderData.cliente.ciudad}
-Código Postal: ${orderData.cliente.codigoPostal}
-
-🛒 PRODUCTOS
-------------------------------------------
-${orderData.productos.map(p => 
-`- ${p.nombre} x${p.cantidad} = $${p.subtotal.toFixed(2)}`
-).join('\n')}
-
-💰 TOTAL: $${orderData.total.toFixed(2)}
-
-${orderData.notas ? `📝 NOTAS: ${orderData.notas}` : ''}
-
-==========================================
-Fecha: ${new Date().toLocaleString('es-AR')}
-==========================================
-    `,
-    _replyto: orderData.email,
-    _subject: `Nuevo Pedido Duck'n Roll`,
-    // Campos adicionales para mejor organización
-    nombre: `${orderData.cliente.nombre} ${orderData.cliente.apellido}`,
-    email: orderData.email,
-    telefono: orderData.cliente.telefono,
-    total: `$${orderData.total.toFixed(2)}`,
-    productos: orderData.productos.map(p => 
-    `${p.nombre} x${p.cantidad}`
-    ).join(', ')
+    const response = await api.post('/ordenes/email', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error al enviar email de orden:', error);
+    throw error;
+  }
 };
-
-const response = await axios.post(FORMSPREE_ENDPOINT, emailData, {
-    headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-    }
-});
-
-return response.data;
-} catch (error) {
-console.error('Error al enviar email:', error);
-throw error;
-}
-};
-

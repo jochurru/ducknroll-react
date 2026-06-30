@@ -58,9 +58,9 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6">
+    <div className="min-h-screen bg-gray-50 py-8 sm:py-12 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-dark mb-8 font-retro">
+        <h1 className="text-2xl sm:text-3xl font-bold text-dark mb-6 sm:mb-8 font-retro">
           🛒 Mi Carrito ({getTotalItems()})
         </h1>
 
@@ -98,7 +98,7 @@ const Cart = () => {
                       👕 Talle: {item.talleSeleccionado}
                     </span>
                   )}
-                  <p className="text-xl font-bold text-dark mt-2 font-retro text-xs">
+                  <p className="text-lg font-bold text-dark mt-2 font-retro">
                     ${parseFloat(item.precio).toLocaleString('es-AR')}
                   </p>
                 </div>
@@ -131,8 +131,8 @@ const Cart = () => {
                     </button>
                   </div>
 
-                  <p className="text-base font-bold text-dark font-sans mt-2 order-3">
-                    Subtotal: <span className="text-primary font-retro text-xs">${(parseFloat(item.precio) * item.quantity).toLocaleString('es-AR')}</span>
+                  <p className="text-sm font-bold text-dark font-sans mt-2 order-3">
+                    Subtotal: <span className="text-primary font-retro text-sm">${(parseFloat(item.precio) * item.quantity).toLocaleString('es-AR')}</span>
                   </p>
                 </div>
               </div>
@@ -155,9 +155,9 @@ const Cart = () => {
             </div>
           </div>
 
-          {/* Resumen del pedido */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6 lg:sticky lg:top-24">
+          {/* Resumen del pedido - en mobile aparece PRIMERO (order-first) */}
+          <div className="lg:col-span-1 order-first lg:order-last">
+            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-5 sm:p-6 lg:sticky lg:top-24">
               <h2 className="text-xl font-bold text-dark mb-6 border-b pb-4">
                 Resumen de Compra
               </h2>

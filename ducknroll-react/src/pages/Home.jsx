@@ -17,21 +17,21 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section Premium */}
-      <section className="bg-secondary text-accent py-20 relative overflow-hidden border-b-4 border-primary">
+      <section className="bg-secondary text-accent py-10 md:py-20 relative overflow-hidden border-b-4 border-primary">
         {/* Resplandor radial de fondo */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.08)_0%,transparent_70%)] pointer-events-none"></div>
 
         <div className="container mx-auto px-4 text-center relative z-10">
           {/* Badge Flotante Promocional */}
-          <div className="inline-block bg-primary text-dark font-bold text-xs uppercase px-4 py-1.5 rounded-full mb-6 tracking-widest neon-glow-yellow">
+          <div className="inline-block bg-primary text-dark font-bold text-xs uppercase px-3 py-1.5 rounded-full mb-5 tracking-widest neon-glow-yellow">
             🚚 ¡Envío gratis en compras mayores a $20.000! 🚚
           </div>
 
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4 sm:mb-6">
             <img 
               src={logo} 
               alt="Duck'n Roll Logo" 
-              className="h-52 w-auto animate-bounce hover:scale-105 transition-transform duration-300 pointer-events-auto cursor-pointer"
+              className="h-32 sm:h-44 md:h-52 w-auto animate-bounce hover:scale-105 transition-transform duration-300 pointer-events-auto cursor-pointer"
               style={{ animationDuration: '4s' }}
             />
           </div>
@@ -46,27 +46,27 @@ const Home = () => {
 
           <Link 
             to="/productos"
-            className="bg-primary hover:bg-primary-dark text-dark px-10 py-4 rounded-lg font-bold text-lg transition-all duration-300 retro-shadow"
+            className="bg-primary hover:bg-primary-dark text-dark px-8 sm:px-10 py-3.5 sm:py-4 rounded-lg font-bold text-base sm:text-lg transition-all duration-300 retro-shadow"
           >
             Explorar Catálogo 🚀
           </Link>
 
           {/* Estadísticas de Confianza en el Hero */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto pt-10 border-t border-gray-custom">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mt-10 md:mt-16 max-w-4xl mx-auto pt-8 md:pt-10 border-t border-gray-custom">
             <div>
-              <p className="text-3xl font-bold text-primary font-retro">+10k</p>
+              <p className="text-2xl sm:text-3xl font-bold text-primary font-retro">+10k</p>
               <p className="text-xs text-gray-light font-sans mt-1">Prendas Vendidas</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-primary font-retro">100%</p>
+              <p className="text-2xl sm:text-3xl font-bold text-primary font-retro">100%</p>
               <p className="text-xs text-gray-light font-sans mt-1">Algodón Premium</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-primary font-retro">4.9★</p>
+              <p className="text-2xl sm:text-3xl font-bold text-primary font-retro">4.9★</p>
               <p className="text-xs text-gray-light font-sans mt-1">Valoración Media</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-primary font-retro">24/7</p>
+              <p className="text-2xl sm:text-3xl font-bold text-primary font-retro">24/7</p>
               <p className="text-xs text-gray-light font-sans mt-1">Soporte Express</p>
             </div>
           </div>

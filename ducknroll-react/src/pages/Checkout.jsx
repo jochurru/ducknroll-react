@@ -44,6 +44,8 @@ const Checkout = () => {
     setError('');
 
     try {
+      const newOrderId = `DK${Date.now()}`;
+
       const orderData = {
         email: formData.email,
         cliente: {
@@ -58,6 +60,7 @@ const Checkout = () => {
           id: item.id,
           nombre: item.nombre,
           precio: parseFloat(item.precio),
+          talle: item.talleSeleccionado || '-',
           cantidad: item.quantity,
           subtotal: parseFloat(item.precio) * item.quantity
         })),
@@ -66,7 +69,7 @@ const Checkout = () => {
         fecha: new Date().toISOString()
       };
 
-      await sendOrderEmail(orderData);
+      await sendOrderEmail(orderData, newOrderId);
 
       // Descontar inventario de remeras en el backend
       try {
@@ -82,7 +85,6 @@ const Checkout = () => {
         console.error('⚠️ Error no crítico al descontar stock:', stockError);
       }
 
-      const newOrderId = `DK${Date.now()}`;
 
       clearCart();
 
@@ -154,13 +156,13 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6">
+    <div className="min-h-screen bg-gray-50 py-8 sm:py-12 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-6 text-sm text-gray-custom font-sans flex items-center gap-2">
+        <div className="mb-4 sm:mb-6 text-sm text-gray-custom font-sans flex items-center gap-2">
           <Link to="/carrito" className="hover:text-primary transition-colors">🛒 Volver al carrito</Link>
         </div>
 
-        <h1 className="text-3xl font-bold text-dark mb-8 font-retro">
+        <h1 className="text-2xl sm:text-3xl font-bold text-dark mb-6 sm:mb-8 font-retro">
           💳 Finalizar Compra
         </h1>
 
@@ -330,9 +332,9 @@ const Checkout = () => {
             </form>
           </div>
 
-          {/* Resumen del pedido */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:sticky lg:top-24 space-y-6">
+          {/* Resumen del pedido - en mobile aparece PRIMERO */}
+          <div className="lg:col-span-1 order-first lg:order-last">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-6 lg:sticky lg:top-24 space-y-6">
               <h2 className="text-xl font-bold text-dark mb-4 border-b pb-4">
                 Resumen de Compra
               </h2>

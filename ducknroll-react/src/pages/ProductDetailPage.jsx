@@ -121,7 +121,7 @@ const ProductDetailPage = () => {
               <img
                 src={getImagePath(product.imagen)}
                 alt={product.nombre}
-                className="max-h-[450px] object-contain hover:scale-105 transition-transform duration-300"
+                className="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] object-contain hover:scale-105 transition-transform duration-300"
                 onError={(e) => {
                   e.target.src = 'https://via.placeholder.com/500x500?text=Duck%27n+Roll';
                 }}
@@ -182,12 +182,12 @@ const ProductDetailPage = () => {
                       📐 Ver Guía de Talles
                     </button>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {sizes.map((size) => (
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`w-12 h-12 rounded-lg font-bold font-sans text-sm flex items-center justify-center border transition-all ${
+                        className={`w-14 h-14 rounded-lg font-bold font-sans text-sm flex items-center justify-center border transition-all ${
                           selectedSize === size
                             ? 'bg-primary border-primary text-dark shadow-md scale-105'
                             : 'bg-white hover:bg-gray-100 border-gray-300 text-gray-custom'

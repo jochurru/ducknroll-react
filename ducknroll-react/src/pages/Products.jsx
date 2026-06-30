@@ -63,20 +63,20 @@ const Products = () => {
   const categories = ['Todas', 'Gaming', 'Rock', 'Retro', 'Ofertas'];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-8 sm:py-12">
       <div className="container mx-auto px-4">
         {/* Encabezado */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-dark mb-4 font-retro">
+        <div className="text-center mb-8 sm:mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold text-dark mb-3 sm:mb-4 font-retro">
             Nuestros Productos
           </h1>
-          <p className="text-gray-custom text-lg font-sans max-w-md mx-auto">
+          <p className="text-gray-custom text-base sm:text-lg font-sans max-w-md mx-auto">
             Explorá nuestra colección completa de remeras retro-gaming y rockeras de alta gama.
           </p>
         </div>
 
         {/* Barra de Filtros, Buscador y Ordenación */}
-        <div className="bg-white p-6 rounded-xl shadow border border-gray-200 mb-10 max-w-5xl mx-auto">
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow border border-gray-200 mb-8 sm:mb-10 max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             {/* Buscador */}
             <div className="relative w-full md:max-w-md">
