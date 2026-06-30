@@ -27,6 +27,7 @@ const Admin = () => {
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [adminSearchTerm, setAdminSearchTerm] = useState('');
+    const [blockSubmit, setBlockSubmit] = useState(false);
 
     const filteredAdminProducts = products.filter(product =>
         product.nombre.toLowerCase().includes(adminSearchTerm.toLowerCase()) ||
@@ -117,6 +118,9 @@ const Admin = () => {
                 toastError('Por favor, cargá una imagen o ingresá una URL');
                 return;
             }
+            // Evitar clicks de rebote rápidos/accidentales al cambiar de paso
+            setBlockSubmit(true);
+            setTimeout(() => setBlockSubmit(false), 600);
         }
         setCurrentStep(prev => prev + 1);
     };
@@ -197,6 +201,12 @@ const Admin = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Evitar que el formulario se envíe mediante la tecla Enter antes del paso final
+        if (currentStep < 3) {
+            handleNextStep();
+            return;
+        }
         
         if (!formData.imagen) {
         toastError('Debés subir una imagen o ingresar una URL');
@@ -675,7 +685,7 @@ const Admin = () => {
                     ) : (
                       <button
                       type="submit"
-                      disabled={loading || !formData.imagen}
+                      disabled={loading || !formData.imagen || blockSubmit}
                       className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50 text-sm md:text-base shadow-md ml-auto"
                       >
                       {loading ? '⏳ Guardando...' : (editingProduct ? '✅ Guardar Cambios' : '✅ Crear Remera')}
