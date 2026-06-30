@@ -15,6 +15,7 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -169,9 +170,18 @@ const ProductDetailPage = () => {
 
                 {/* Selector de Talles Interactivo */}
                 <div className="mb-4">
-                  <label className="block text-sm font-bold text-dark mb-3 font-sans uppercase tracking-wide">
-                    Seleccionar Talle:
-                  </label>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-bold text-dark font-sans uppercase tracking-wide">
+                      Seleccionar Talle:
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowSizeGuide(true)}
+                      className="text-xs text-primary-dark hover:text-dark font-bold font-sans underline transition-colors"
+                    >
+                      📐 Ver Guía de Talles
+                    </button>
+                  </div>
                   <div className="flex gap-2">
                     {sizes.map((size) => (
                       <button
@@ -272,6 +282,139 @@ const ProductDetailPage = () => {
           </div>
         </div>
       </div>
+      {showSizeGuide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden relative border border-gray-100 flex flex-col max-h-[90vh] animate-scaleUp">
+            {/* Botón cerrar */}
+            <button
+              onClick={() => setShowSizeGuide(false)}
+              className="absolute top-4 right-4 bg-gray-100 hover:bg-gray-250 text-dark w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-90 font-bold z-10"
+              title="Cerrar Guía"
+            >
+              ✕
+            </button>
+
+            {/* Contenido Modal */}
+            <div className="p-6 md:p-8 overflow-y-auto">
+              <h3 className="text-xl md:text-2xl font-bold text-dark mb-4 font-retro tracking-wide text-center">
+                📐 GUÍA PARA ELEGIR TU TALLE
+              </h3>
+              
+              <p className="text-xs md:text-sm text-gray-custom mb-6 text-center max-w-2xl mx-auto leading-relaxed">
+                No todos los cuerpos son iguales, por lo tanto no existe una referencia exacta para cada persona. 
+                Te proporcionamos <strong>2 formas de medición</strong> para que puedas tener una referencia aproximada:
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 md:p-5 rounded-xl mb-6">
+                <div className="text-xs md:text-sm text-dark font-sans leading-relaxed flex items-start gap-2">
+                  <span className="bg-primary text-dark font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">1</span>
+                  <span><strong>Medir una remera propia</strong>: Colocá una prenda que te quede bien sobre una superficie plana. Medí el ancho (A) de axila a axila, y el alto (B) desde el cuello hasta el borde inferior.</span>
+                </div>
+                <div className="text-xs md:text-sm text-dark font-sans leading-relaxed flex items-start gap-2">
+                  <span className="bg-primary text-dark font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">2</span>
+                  <span><strong>Medir tu contorno</strong>: Medí la circunferencia horizontal de tu pecho con una cinta métrica a la altura de las axilas y comparalo con el contorno sugerido.</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                
+                {/* Ilustraciones SVG */}
+                <div className="lg:col-span-5 flex flex-row lg:flex-col justify-center items-center gap-6">
+                  {/* SVG Remera */}
+                  <div className="flex flex-col items-center">
+                    <svg viewBox="0 0 200 200" className="w-36 h-36 md:w-44 md:h-44 text-dark fill-current">
+                      {/* Silueta de la remera */}
+                      <path d="M 40,30 L 70,30 L 70,10 C 85,15 115,15 130,10 L 130,30 L 160,30 L 180,75 L 150,85 L 145,70 L 145,185 L 55,185 L 55,70 L 50,85 L 20,75 Z" fill="#1A1A1A" />
+                      
+                      {/* Línea A - Ancho */}
+                      <line x1="55" y1="90" x2="145" y2="90" stroke="#FFC700" strokeWidth="2" strokeDasharray="3 3" />
+                      <polygon points="55,90 60,86 60,94" fill="#FFC700" />
+                      <polygon points="145,90 140,86 140,94" fill="#FFC700" />
+                      <text x="100" y="83" fill="#FFC700" fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">A (Ancho)</text>
+                      
+                      {/* Línea B - Alto */}
+                      <line x1="100" y1="18" x2="100" y2="185" stroke="#FFFFFF" strokeWidth="2" strokeDasharray="3 3" />
+                      <polygon points="100,18 96,23 104,23" fill="#FFFFFF" />
+                      <polygon points="100,185 96,180 104,180" fill="#FFFFFF" />
+                      <text x="108" y="105" fill="#FFFFFF" fontSize="11" fontWeight="bold" textAnchor="start" fontFamily="sans-serif">B (Alto)</text>
+                    </svg>
+                    <span className="text-2xs md:text-xs text-gray-500 font-bold font-sans mt-2">Medidas de la prenda</span>
+                  </div>
+
+                  {/* SVG Contorno Pecho */}
+                  <div className="flex flex-col items-center">
+                    <svg viewBox="0 0 200 200" className="w-36 h-36 md:w-44 md:h-44">
+                      {/* Silueta de Torso humana */}
+                      <path d="M 100,25 C 110,25 118,33 118,43 C 118,53 110,61 100,61 C 90,61 82,53 82,43 C 82,33 90,25 100,25 Z M 100,68 C 120,68 140,75 145,95 L 140,185 L 60,185 L 55,95 C 60,75 80,68 100,68 Z" fill="#E2E8F0" />
+                      
+                      {/* Línea curva pecho roja */}
+                      <path d="M 68,110 Q 100,125 132,110" fill="none" stroke="#EF4444" strokeWidth="2.5" />
+                      <polygon points="68,110 74,107 72,113" fill="#EF4444" />
+                      <polygon points="132,110 126,107 128,113" fill="#EF4444" />
+                      <text x="100" y="137" fill="#EF4444" fontSize="10" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">Contorno Pecho</text>
+                    </svg>
+                    <span className="text-2xs md:text-xs text-gray-500 font-bold font-sans mt-2">Medida de tu cuerpo</span>
+                  </div>
+                </div>
+
+                {/* Tabla de Medidas */}
+                <div className="lg:col-span-7">
+                  <div className="overflow-hidden border border-gray-200 rounded-xl shadow-sm">
+                    <table className="w-full text-left font-sans border-collapse">
+                      <thead>
+                        <tr className="bg-dark text-white text-xs md:text-sm font-bold">
+                          <th className="p-3 md:p-4 text-center">TALLE</th>
+                          <th className="p-3 md:p-4 text-center">A (ANCHO)</th>
+                          <th className="p-3 md:p-4 text-center">B (ALTO)</th>
+                          <th className="p-3 md:p-4 text-center">CONTORNO PECHO</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-150 text-xs md:text-sm">
+                        {[
+                          { talle: 'S', ancho: '48 / 49 cm', alto: '70 / 71 cm', pecho: '96 / 99 cm' },
+                          { talle: 'M', ancho: '51 / 52 cm', alto: '73 / 74 cm', pecho: '100 / 104 cm' },
+                          { talle: 'L', ancho: '53 / 54 cm', alto: '74 / 75 cm', pecho: '105 / 108 cm' },
+                          { talle: 'XL', ancho: '55 / 56 cm', alto: '76 / 77 cm', pecho: '109 / 113 cm' },
+                          { talle: 'XXL', talleFiltro: 'XXL', ancho: '57 / 58 cm', alto: '78 / 79 cm', pecho: '114 / 118 cm' },
+                          { talle: '3XL', ancho: '59 / 60 cm', alto: '79 / 80 cm', pecho: '119 / 124 cm' },
+                        ].map((row) => (
+                          <tr 
+                            key={row.talle} 
+                            className={`hover:bg-primary/10 transition-colors text-center font-semibold text-dark ${
+                              selectedSize === row.talle || selectedSize === row.talleFiltro
+                                ? 'bg-primary/25 font-bold' 
+                                : ''
+                            }`}
+                          >
+                            <td className="p-3 md:p-4 bg-gray-50 border-r border-gray-100 font-bold">{row.talle}</td>
+                            <td className="p-3 md:p-4">{row.ancho}</td>
+                            <td className="p-3 md:p-4">{row.alto}</td>
+                            <td className="p-3 md:p-4 text-gray-custom">{row.pecho}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-2xs text-gray-400 mt-3 font-sans italic text-center lg:text-left">
+                    * Las medidas expresadas en la tabla son aproximadas y pueden variar +/- 1 cm según el proceso de confección.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setShowSizeGuide(false)}
+                className="bg-dark hover:bg-dark-light text-white px-5 py-2 rounded-lg font-bold font-sans text-xs md:text-sm transition-all hover:scale-105 active:scale-95 shadow"
+              >
+                Entendido 👍
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
