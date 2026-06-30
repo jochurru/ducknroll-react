@@ -236,7 +236,9 @@ export const enviarEmailOrden = async (req, res) => {
   } catch (error) {
     console.error('❌ Error al enviar emails de orden:', error);
     res.status(500).json({
-      error: 'No pudimos enviar la confirmación por email. El pedido igual fue registrado.'
+      error: 'No pudimos enviar la confirmación por email. El pedido igual fue registrado.',
+      _debug: error.message,
+      _code: error.code
     });
   }
 };

@@ -4,13 +4,25 @@ import nodemailer from 'nodemailer';
  * Crea y devuelve el transporter de nodemailer configurado con Gmail.
  */
 const crearTransporter = () => {
-  return nodemailer.createTransport({
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.error('❌ EMAIL credentials missing');
+  }
+  const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS  // App Password de Google (no tu contraseña normal)
+      pass: process.env.EMAIL_PASS
     }
   });
+  // Verify connection configuration
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error('❌ Nodemailer verification failed:', error);
+    } else {
+      console.log('✅ Nodemailer transporter verified');
+    }
+  });
+  return transporter;
 };
 
 /**
@@ -134,7 +146,11 @@ export const enviarContacto = async (req, res) => {
     res.status(200).json({ message: '¡Mensaje enviado con éxito! Te responderemos muy pronto.' });
 
   } catch (error) {
-    console.error('❌ Error al enviar email de contacto:', error);
-    res.status(500).json({ error: 'No pudimos enviar tu mensaje. Por favor, intentá más tarde o comunicate por WhatsApp.' });
+    console.error('❌ Error al enviar email de contacto:', error.message, error.code);
+    res.status(500).json({
+      error: 'No pudimos enviar tu mensaje. Por favor, intentá más tarde o comunicate por WhatsApp.',
+      _debug: error.message,
+      _code: error.code
+    });
   }
 };
