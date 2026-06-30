@@ -40,8 +40,23 @@ const ProductDetailPage = () => {
     fetchProduct();
   }, [id, getProduct]);
 
+  const selectedSizeStock = product && product.inventario && product.inventario[selectedSize] !== undefined
+    ? Number(product.inventario[selectedSize])
+    : 10;
+
+  useEffect(() => {
+    if (selectedSizeStock > 0 && quantity > selectedSizeStock) {
+      setQuantity(selectedSizeStock);
+    } else if (selectedSizeStock === 0) {
+      setQuantity(0);
+    } else if (quantity === 0 && selectedSizeStock > 0) {
+      setQuantity(1);
+    }
+  }, [selectedSize, selectedSizeStock, quantity]);
+
   const handleAddToCart = () => {
-    addToCart(product, quantity);
+    if (selectedSizeStock === 0) return;
+    addToCart({ ...product, talleSeleccionado: selectedSize }, quantity);
     toastSuccess(`${quantity} remera(s) "${product.nombre}" (Talle: ${selectedSize}) agregada(s) al carrito 🛒`);
   };
 
@@ -153,7 +168,7 @@ const ProductDetailPage = () => {
                 </div>
 
                 {/* Selector de Talles Interactivo */}
-                <div className="mb-6">
+                <div className="mb-4">
                   <label className="block text-sm font-bold text-dark mb-3 font-sans uppercase tracking-wide">
                     Seleccionar Talle:
                   </label>
@@ -174,6 +189,26 @@ const ProductDetailPage = () => {
                   </div>
                 </div>
 
+                {/* Stock por Talle Seleccionado */}
+                <div className="mb-6">
+                  {selectedSizeStock === 0 ? (
+                    <div className="flex items-center gap-2 text-red-600 font-sans font-bold text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2 w-max">
+                      <span>❌</span>
+                      <span>Sin Stock disponible en Talle {selectedSize}</span>
+                    </div>
+                  ) : selectedSizeStock <= 3 ? (
+                    <div className="flex items-center gap-2 text-amber-600 font-sans font-bold text-sm bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 w-max animate-pulse">
+                      <span>⚠️</span>
+                      <span>¡Últimas {selectedSizeStock} unidades en Talle {selectedSize}!</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-green-700 font-sans font-semibold text-sm bg-green-50 border border-green-200 rounded-lg px-3 py-2 w-max">
+                      <span>✓</span>
+                      <span>Stock disponible: {selectedSizeStock} unidades ({selectedSize})</span>
+                    </div>
+                  )}
+                </div>
+
                 {/* Selector de Cantidad */}
                 <div className="mb-8">
                   <label className="block text-sm font-bold text-dark mb-3 font-sans uppercase tracking-wide">
@@ -182,7 +217,8 @@ const ProductDetailPage = () => {
                   <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-1.5 w-max border border-gray-200">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="bg-white hover:bg-gray-200 text-dark w-10 h-10 rounded-md font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center"
+                      disabled={quantity <= 1 || selectedSizeStock === 0}
+                      className="bg-white hover:bg-gray-200 text-dark w-10 h-10 rounded-md font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center disabled:opacity-40"
                     >
                       -
                     </button>
@@ -191,7 +227,8 @@ const ProductDetailPage = () => {
                     </span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="bg-white hover:bg-gray-200 text-dark w-10 h-10 rounded-md font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center"
+                      disabled={quantity >= selectedSizeStock || selectedSizeStock === 0}
+                      className="bg-white hover:bg-gray-200 text-dark w-10 h-10 rounded-md font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center disabled:opacity-40"
                     >
                       +
                     </button>
@@ -203,9 +240,10 @@ const ProductDetailPage = () => {
               <div className="space-y-4">
                 <button
                   onClick={handleAddToCart}
-                  className="w-full bg-primary hover:bg-primary-dark text-dark py-4 rounded-xl font-bold text-base transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] retro-shadow-sm shadow-md"
+                  disabled={selectedSizeStock === 0}
+                  className="w-full bg-primary hover:bg-primary-dark text-dark py-4 rounded-xl font-bold text-base transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] retro-shadow-sm shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {productInCart ? 'Agregar más al carrito 🛒' : 'Agregar al carrito 🛒'}
+                  {selectedSizeStock === 0 ? '❌ Sin stock disponible' : (productInCart ? 'Agregar más al carrito 🛒' : 'Agregar al carrito 🛒')}
                 </button>
                 <button
                   onClick={() => navigate('/productos')}

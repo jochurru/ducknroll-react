@@ -31,41 +31,41 @@ localStorage.setItem('ducknroll-cart', JSON.stringify(cart));
 
 // Agregar producto al carrito
 const addToCart = (product, quantity = 1) => {
-setCart(prevCart => {
-    // Verificar si el producto ya está en el carrito
-    const existingItem = prevCart.find(item => item.id === product.id);
+  setCart(prevCart => {
+    // Buscar si existe el producto con el mismo ID y el mismo talle seleccionado
+    const existingItem = prevCart.find(
+      item => item.id === product.id && item.talleSeleccionado === product.talleSeleccionado
+    );
     
     if (existingItem) {
-    // Si existe, incrementar la cantidad
-    return prevCart.map(item =>
-        item.id === product.id
+      return prevCart.map(item =>
+        item.id === product.id && item.talleSeleccionado === product.talleSeleccionado
         ? { ...item, quantity: item.quantity + quantity }
         : item
-    );
+      );
     } else {
-    // Si no existe, agregarlo
-    return [...prevCart, { ...product, quantity }];
+      return [...prevCart, { ...product, quantity }];
     }
-});
+  });
 };
 
 // Remover producto del carrito
-const removeFromCart = (productId) => {
-setCart(prevCart => prevCart.filter(item => item.id !== productId));
+const removeFromCart = (productId, talle) => {
+  setCart(prevCart => prevCart.filter(item => !(item.id === productId && item.talleSeleccionado === talle)));
 };
 
 // Actualizar cantidad de un producto
-const updateQuantity = (productId, quantity) => {
-if (quantity <= 0) {
-    removeFromCart(productId);
+const updateQuantity = (productId, talle, quantity) => {
+  if (quantity <= 0) {
+    removeFromCart(productId, talle);
     return;
-}
+  }
 
-setCart(prevCart =>
+  setCart(prevCart =>
     prevCart.map(item =>
-    item.id === productId ? { ...item, quantity } : item
+      item.id === productId && item.talleSeleccionado === talle ? { ...item, quantity } : item
     )
-);
+  );
 };
 
 // Vaciar carrito

@@ -6,7 +6,8 @@ import {
   updateProduct, 
   deleteProduct,
   uploadImageController,
-  migrateImagesToCloudinary
+  migrateImagesToCloudinary,
+  descontarStock
 } from '../controllers/productsController.js';
 import { requireAuth, requireAdmin } from '../middlewares/authMiddleware.js';
 import { uploadSingleImage } from '../middlewares/uploadMiddleware.js';
@@ -16,6 +17,7 @@ const router = express.Router();
 // Rutas Públicas (Cualquier visitante puede ver los productos)
 router.get('/', getAllProducts);
 router.get('/:id', getProductById);
+router.post('/descontar-stock', descontarStock);
 
 // Rutas Protegidas (Solo Administradores Autenticados)
 router.post('/', requireAuth, requireAdmin, createProduct);

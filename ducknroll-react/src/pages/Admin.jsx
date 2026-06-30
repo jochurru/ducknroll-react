@@ -20,7 +20,8 @@ const Admin = () => {
         etiqueta: '',
         categoria: 'general',
         material: '',
-        talles: []
+        talles: [],
+        inventario: {}
     });
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -94,17 +95,39 @@ const Admin = () => {
 
     const handleTalleChange = (talle) => {
         const currentTalles = formData.talles || [];
+        const currentInventario = formData.inventario || {};
         if (currentTalles.includes(talle)) {
+            // Desactivar talle
+            const newTalles = currentTalles.filter(t => t !== talle);
+            const newInventario = { ...currentInventario };
+            delete newInventario[talle];
             setFormData({
                 ...formData,
-                talles: currentTalles.filter(t => t !== talle)
+                talles: newTalles,
+                inventario: newInventario
             });
         } else {
+            // Activar talle (por defecto con stock 10)
             setFormData({
                 ...formData,
-                talles: [...currentTalles, talle]
+                talles: [...currentTalles, talle],
+                inventario: {
+                    ...currentInventario,
+                    [talle]: 10
+                }
             });
         }
+    };
+
+    const handleStockChange = (talle, valor) => {
+        const cantidad = Math.max(0, parseInt(valor) || 0);
+        setFormData({
+            ...formData,
+            inventario: {
+                ...(formData.inventario || {}),
+                [talle]: cantidad
+            }
+        });
     };
 
     const handleNextStep = () => {
@@ -139,7 +162,8 @@ const Admin = () => {
             etiqueta: product.etiqueta || '',
             categoria: product.categoria || 'general',
             material: product.material || '',
-            talles: Array.isArray(product.talles) ? product.talles : []
+            talles: Array.isArray(product.talles) ? product.talles : [],
+            inventario: product.inventario || {}
         });
         setPreviewUrl(null);
         setSelectedFile(null);
@@ -159,7 +183,8 @@ const Admin = () => {
             etiqueta: '',
             categoria: 'general',
             material: '',
-            talles: []
+            talles: [],
+            inventario: {}
         });
         setSelectedFile(null);
         setPreviewUrl(null);
@@ -658,6 +683,29 @@ const Admin = () => {
                         <p className="text-xs text-gray-500 mt-2 font-sans">
                           Tilda las casillas de los talles que tengan stock de esta remera. Al menos uno es recomendado.
                         </p>
+
+                        {/* Input de Stock por Talle Seleccionado */}
+                        {formData.talles && formData.talles.length > 0 && (
+                            <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
+                                <p className="text-xs font-bold text-gray-custom font-sans uppercase tracking-wider">
+                                Cantidad en Stock por Talle:
+                                </p>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                    {formData.talles.map((talle) => (
+                                        <div key={talle} className="flex flex-col bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm">
+                                            <span className="text-xs font-bold font-sans text-dark mb-1 text-center">Talle {talle}</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={formData.inventario?.[talle] !== undefined ? formData.inventario[talle] : 10}
+                                                onChange={(e) => handleStockChange(talle, e.target.value)}
+                                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm font-semibold text-center font-sans focus:outline-none focus:ring-1 focus:ring-primary"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                   </div>
                 )}

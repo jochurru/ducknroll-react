@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { sendOrderEmail } from '../services/email';
 import Swal from 'sweetalert2';
+import api from '../services/api';
 
 const Checkout = () => {
   const { cart, getTotalPrice, clearCart } = useCart();
@@ -66,6 +67,20 @@ const Checkout = () => {
       };
 
       await sendOrderEmail(orderData);
+
+      // Descontar inventario de remeras en el backend
+      try {
+        const discountStockData = {
+          productos: cart.map(item => ({
+            id: item.id,
+            talle: item.talleSeleccionado || 'M',
+            cantidad: item.quantity
+          }))
+        };
+        await api.post('/productos/descontar-stock', discountStockData);
+      } catch (stockError) {
+        console.error('⚠️ Error no crítico al descontar stock:', stockError);
+      }
 
       const newOrderId = `DK${Date.now()}`;
 

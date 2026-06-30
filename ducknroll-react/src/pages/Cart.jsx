@@ -69,7 +69,7 @@ const Cart = () => {
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item) => (
               <div 
-                key={item.id} 
+                key={`${item.id}-${item.talleSeleccionado || 'default'}`} 
                 className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 hover:shadow-md transition-shadow"
               >
                 {/* Imagen */}
@@ -93,6 +93,11 @@ const Cart = () => {
                   <p className="text-gray-500 text-xs mt-1 font-sans line-clamp-2">
                     {item.descripcion}
                   </p>
+                  {item.talleSeleccionado && (
+                    <span className="inline-block bg-primary/20 text-dark text-xs font-bold font-sans px-2.5 py-0.5 rounded-full mt-2 border border-primary/30">
+                      👕 Talle: {item.talleSeleccionado}
+                    </span>
+                  )}
                   <p className="text-xl font-bold text-dark mt-2 font-retro text-xs">
                     ${parseFloat(item.precio).toLocaleString('es-AR')}
                   </p>
@@ -101,7 +106,7 @@ const Cart = () => {
                 {/* Controles de cantidad y precio */}
                 <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-4 w-full sm:w-auto mt-2 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-gray-100">
                   <button
-                    onClick={() => removeFromCart(item.id)}
+                    onClick={() => removeFromCart(item.id, item.talleSeleccionado)}
                     className="text-red-500 hover:text-red-700 hover:scale-110 transition-transform p-1 order-2 sm:order-1"
                     title="Eliminar del carrito"
                   >
@@ -110,7 +115,7 @@ const Cart = () => {
 
                   <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1 border border-gray-200 order-1 sm:order-2">
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.id, item.talleSeleccionado, item.quantity - 1)}
                       className="w-8 h-8 bg-white hover:bg-gray-200 text-dark rounded-md font-bold transition-all active:scale-90 flex items-center justify-center shadow-sm"
                     >
                       -
@@ -119,7 +124,7 @@ const Cart = () => {
                       {item.quantity}
                     </span>
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.id, item.talleSeleccionado, item.quantity + 1)}
                       className="w-8 h-8 bg-white hover:bg-gray-200 text-dark rounded-md font-bold transition-all active:scale-90 flex items-center justify-center shadow-sm"
                     >
                       +
