@@ -16,6 +16,7 @@ const ProductDetailPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
   const [showSizeGuide, setShowSizeGuide] = useState(false);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -117,15 +118,26 @@ const ProductDetailPage = () => {
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 md:p-12">
             {/* Columna Izquierda: Imagen */}
-            <div className="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-6 border border-gray-100 relative shadow-inner">
+            <div 
+              onClick={() => setIsZoomOpen(true)}
+              className="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-6 border border-gray-100 relative shadow-inner cursor-zoom-in group/image"
+              title="Hacé clic para ampliar la imagen"
+            >
               <img
                 src={getImagePath(product.imagen)}
                 alt={product.nombre}
-                className="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] object-contain mix-blend-multiply hover:scale-105 transition-transform duration-300"
+                className="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] object-contain mix-blend-multiply transition-all duration-300 group-hover/image:scale-[1.03]"
                 onError={(e) => {
                   e.target.src = 'https://via.placeholder.com/500x500?text=Duck%27n+Roll';
                 }}
               />
+              
+              {/* Indicador de Ampliación al posar el cursor */}
+              <div className="absolute bottom-4 right-4 bg-black/75 backdrop-blur-xs text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-md opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 font-sans flex items-center gap-1.5 pointer-events-none">
+                <span>🔍</span>
+                <span>Ver de cerca</span>
+              </div>
+
               {etiquetaToShow && (
                 <span className={`absolute top-4 left-4 text-xs font-bold uppercase px-3 py-1.5 rounded-full shadow-md font-sans tracking-wide ${
                   etiquetaToShow.includes('Premium') || etiquetaToShow.includes('💎')
@@ -412,6 +424,38 @@ const ProductDetailPage = () => {
                 Entendido 👍
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox / Zoom de Imagen */}
+      {isZoomOpen && (
+        <div 
+          onClick={() => setIsZoomOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs animate-fadeIn cursor-zoom-out"
+        >
+          {/* Botón cerrar */}
+          <button
+            onClick={() => setIsZoomOpen(false)}
+            className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-90 text-xl font-bold z-10 cursor-pointer"
+            title="Cerrar"
+          >
+            ✕
+          </button>
+          
+          {/* Contenedor de Imagen */}
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="relative max-w-4xl max-h-[85vh] overflow-hidden flex items-center justify-center"
+          >
+            <img
+              src={getImagePath(product.imagen)}
+              alt={product.nombre}
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl bg-white p-4 sm:p-8"
+              onError={(e) => {
+                e.target.src = 'https://via.placeholder.com/500x500?text=Duck%27n+Roll';
+              }}
+            />
           </div>
         </div>
       )}
