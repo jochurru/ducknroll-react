@@ -11,12 +11,16 @@ const Admin = () => {
     const { products, fetchProducts, getImagePath } = useProducts();
     const [showForm, setShowForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
+    const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
         nombre: '',
         precio: '',
         imagen: '',
         descripcion: '',
-        etiqueta: ''
+        etiqueta: '',
+        categoria: 'general',
+        material: '',
+        talles: []
     });
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -87,17 +91,55 @@ const Admin = () => {
         }
     };
 
+    const handleTalleChange = (talle) => {
+        const currentTalles = formData.talles || [];
+        if (currentTalles.includes(talle)) {
+            setFormData({
+                ...formData,
+                talles: currentTalles.filter(t => t !== talle)
+            });
+        } else {
+            setFormData({
+                ...formData,
+                talles: [...currentTalles, talle]
+            });
+        }
+    };
+
+    const handleNextStep = () => {
+        if (currentStep === 1) {
+            if (!formData.nombre || !formData.precio) {
+                toastError('Por favor, completá el nombre y precio del producto');
+                return;
+            }
+        } else if (currentStep === 2) {
+            if (!formData.imagen) {
+                toastError('Por favor, cargá una imagen o ingresá una URL');
+                return;
+            }
+        }
+        setCurrentStep(prev => prev + 1);
+    };
+
+    const handlePrevStep = () => {
+        setCurrentStep(prev => prev - 1);
+    };
+
     const handleEdit = (product) => {
         setEditingProduct(product);
         setFormData({
-        nombre: product.nombre,
-        precio: product.precio,
-        imagen: product.imagen,
-        descripcion: product.descripcion,
-        etiqueta: product.etiqueta || ''
+            nombre: product.nombre,
+            precio: product.precio,
+            imagen: product.imagen,
+            descripcion: product.descripcion,
+            etiqueta: product.etiqueta || '',
+            categoria: product.categoria || 'general',
+            material: product.material || '',
+            talles: Array.isArray(product.talles) ? product.talles : []
         });
         setPreviewUrl(null);
         setSelectedFile(null);
+        setCurrentStep(1);
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -106,14 +148,18 @@ const Admin = () => {
         setShowForm(false);
         setEditingProduct(null);
         setFormData({
-        nombre: '',
-        precio: '',
-        imagen: '',
-        descripcion: '',
-        etiqueta: ''
+            nombre: '',
+            precio: '',
+            imagen: '',
+            descripcion: '',
+            etiqueta: '',
+            categoria: 'general',
+            material: '',
+            talles: []
         });
         setSelectedFile(null);
         setPreviewUrl(null);
+        setCurrentStep(1);
     };
 
     const handleMigrateImages = async () => {
@@ -288,202 +334,358 @@ const Admin = () => {
 
             {/* Formulario - Responsive */}
             {showForm && (
-            <div className="bg-white rounded-lg shadow-lg p-4 md:p-8 mb-6 md:mb-8">
-                <h2 className="text-xl md:text-2xl font-bold text-dark mb-4 md:mb-6 font-retro">
-                {editingProduct ? '✏️ Editar' : '➕ Nuevo'}
+            <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10 mb-6 md:mb-8 border border-gray-100">
+                <h2 className="text-2xl md:text-3xl font-bold text-dark mb-6 font-retro tracking-wide text-center md:text-left">
+                {editingProduct ? '✏️ Editar Remera' : '➕ Nueva Remera'}
                 </h2>
-                <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                    <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
-                        Nombre *
-                    </label>
-                    <input
-                        type="text"
-                        name="nombre"
-                        value={formData.nombre}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-sm md:text-base"
-                        placeholder="Ej: Remera Mario"
-                    />
-                    </div>
 
-                    <div>
-                    <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
-                        Precio *
-                    </label>
-                    <input
-                        type="text"
-                        name="precio"
-                        value={formData.precio}
-                        onChange={handlePriceChange}
-                        required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-sm md:text-base"
-                        placeholder="10000"
-                    />
-                    {formData.precio && (
-                        <p className="text-xs text-gray-500 mt-1">
-                        Precio: ${parseInt(formData.precio).toLocaleString('es-AR')}
-                        </p>
-                    )}
+                {/* Stepper Progress Bar */}
+                <div className="mb-10 max-w-xl mx-auto">
+                    <div className="flex items-center justify-between relative">
+                        {/* Línea de fondo */}
+                        <div className="absolute left-0 right-0 top-1/2 h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
+                        {/* Línea activa */}
+                        <div 
+                          className="absolute left-0 top-1/2 h-1 bg-primary -translate-y-1/2 transition-all duration-500 z-0"
+                          style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
+                        ></div>
+
+                        {/* Paso 1 */}
+                        <div className="z-10 flex flex-col items-center">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold font-sans transition-all duration-300 border-2 ${
+                              currentStep >= 1 ? 'bg-primary text-dark border-primary shadow-md scale-110' : 'bg-white text-gray-400 border-gray-200'
+                            }`}>
+                              1
+                            </div>
+                            <span className={`text-xs font-bold font-sans mt-2 transition-colors duration-300 ${currentStep >= 1 ? 'text-dark' : 'text-gray-400'}`}>
+                              Datos Básicos
+                            </span>
+                        </div>
+
+                        {/* Paso 2 */}
+                        <div className="z-10 flex flex-col items-center">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold font-sans transition-all duration-300 border-2 ${
+                              currentStep >= 2 ? 'bg-primary text-dark border-primary shadow-md scale-110' : 'bg-white text-gray-400 border-gray-200'
+                            }`}>
+                              2
+                            </div>
+                            <span className={`text-xs font-bold font-sans mt-2 transition-colors duration-300 ${currentStep >= 2 ? 'text-dark' : 'text-gray-400'}`}>
+                              Imagen
+                            </span>
+                        </div>
+
+                        {/* Paso 3 */}
+                        <div className="z-10 flex flex-col items-center">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold font-sans transition-all duration-300 border-2 ${
+                              currentStep >= 3 ? 'bg-primary text-dark border-primary shadow-md scale-110' : 'bg-white text-gray-400 border-gray-200'
+                            }`}>
+                              3
+                            </div>
+                            <span className={`text-xs font-bold font-sans mt-2 transition-colors duration-300 ${currentStep >= 3 ? 'text-dark' : 'text-gray-400'}`}>
+                              Ficha Técnica
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Imagen - Responsive */}
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 md:p-6 bg-gray-50">
-                    <label className="block text-sm font-bold text-dark mb-4 font-sans uppercase tracking-wide">
-                    Imagen del Producto *
-                    </label>
-
-                    <button
-                    type="button"
-                    disabled={uploading}
-                    onClick={() => document.getElementById('fileInput').click()}
-                    className="w-full bg-white border border-gray-300 hover:bg-gray-100 text-dark px-4 py-3 rounded-lg font-semibold transition-all hover:scale-[1.01] active:scale-[0.99] text-sm md:text-base mb-4 shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                    📤 {uploading ? 'Cargando imagen...' : 'Subir desde PC'}
-                    </button>
-
-                    <input
-                    id="fileInput"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    disabled={uploading}
-                    />
-
-                    {uploading && (
-                      <div className="flex flex-col items-center justify-center py-6 gap-2 text-sm text-gray-custom font-sans">
-                        <span className="animate-spin text-2xl text-primary">⏳</span>
-                        <span>Subiendo a Cloudinary de forma segura...</span>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                
+                {/* PASO 1: INFORMACIÓN BÁSICA */}
+                {currentStep === 1 && (
+                  <div className="space-y-6 animate-fadeIn">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
+                            Nombre del Producto *
+                        </label>
+                        <input
+                            type="text"
+                            name="nombre"
+                            value={formData.nombre}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-sm md:text-base shadow-sm"
+                            placeholder="Ej: Remera Delorean"
+                        />
                       </div>
-                    )}
 
-                    {previewUrl && !uploading && (
-                      <div className="mt-4 border-t pt-4">
-                        <p className="text-xs text-gray-500 mb-2 font-sans">Vista Previa Seleccionada:</p>
-                        <div className="relative w-36 h-36 mx-auto md:mx-0">
-                          <img 
-                            src={previewUrl} 
-                            alt="Preview" 
-                            className="w-full h-full object-contain rounded-lg border bg-white p-2"
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
+                            Precio ($) *
+                        </label>
+                        <input
+                            type="text"
+                            name="precio"
+                            value={formData.precio}
+                            onChange={handlePriceChange}
+                            required
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-sm md:text-base shadow-sm"
+                            placeholder="20000"
+                        />
+                        {formData.precio && (
+                            <p className="text-xs text-gray-500 mt-1 font-semibold">
+                            Precio en Tienda: ${parseInt(formData.precio).toLocaleString('es-AR')}
+                            </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
+                            Categoría / Género *
+                        </label>
+                        <select
+                            name="categoria"
+                            value={formData.categoria || 'general'}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-sm md:text-base bg-white shadow-sm"
+                        >
+                            <option value="general">General / Sin Categoría</option>
+                            <option value="rock">🎸 Rock</option>
+                            <option value="anime">🍙 Anime</option>
+                            <option value="gaming">🎮 Gaming</option>
+                            <option value="retro">👾 Retro</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
+                            Etiqueta / Leyenda (Opcional)
+                        </label>
+                        <input
+                            type="text"
+                            name="etiqueta"
+                            value={formData.etiqueta || ''}
+                            onChange={handleChange}
+                            list="etiqueta-suggestions"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-sm md:text-base shadow-sm"
+                            placeholder="Ej: 🏷️ Oferta, 💎 Premium..."
+                        />
+                        <datalist id="etiqueta-suggestions">
+                          <option value="🏷️ Oferta" />
+                          <option value="💎 Premium" />
+                          <option value="🔥 Nuevo" />
+                          <option value="✨ Edición Limitada" />
+                          <option value="👕 Últimas Unidades" />
+                        </datalist>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* PASO 2: CARGA DE MULTIMEDIA */}
+                {currentStep === 2 && (
+                  <div className="space-y-6 animate-fadeIn">
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 bg-gray-50">
+                        <label className="block text-sm font-bold text-dark mb-4 font-sans uppercase tracking-wide">
+                        Imagen de la Prenda *
+                        </label>
+
+                        <button
+                        type="button"
+                        disabled={uploading}
+                        onClick={() => document.getElementById('fileInput').click()}
+                        className="w-full bg-white border border-gray-300 hover:bg-gray-100 text-dark px-4 py-4 rounded-xl font-bold transition-all hover:scale-[1.01] active:scale-[0.99] text-sm md:text-base mb-4 shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                        📤 {uploading ? 'Cargando imagen...' : 'Subir Imagen desde PC'}
+                        </button>
+
+                        <input
+                        id="fileInput"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        disabled={uploading}
+                        />
+
+                        {uploading && (
+                          <div className="flex flex-col items-center justify-center py-6 gap-2 text-sm text-gray-custom font-sans">
+                            <span className="animate-spin text-3xl text-primary">⏳</span>
+                            <span className="font-semibold">Subiendo de forma segura a Cloudinary...</span>
+                          </div>
+                        )}
+
+                        {previewUrl && !uploading && (
+                          <div className="mt-4 border-t pt-4">
+                            <p className="text-xs text-gray-500 mb-2 font-sans">Vista Previa:</p>
+                            <div className="relative w-40 h-40 mx-auto md:mx-0">
+                              <img 
+                                src={previewUrl} 
+                                alt="Preview" 
+                                className="w-full h-full object-contain rounded-lg border bg-white p-2"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedFile(null);
+                                  setPreviewUrl(null);
+                                  if (!editingProduct) {
+                                    setFormData(prev => ({ ...prev, imagen: '' }));
+                                  }
+                                }}
+                                className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-md text-xs font-bold transition-all hover:scale-110 active:scale-90"
+                                title="Remover imagen"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {formData.imagen && !previewUrl && !uploading && (
+                          <div className="mt-4 border-t pt-4">
+                            <p className="text-xs text-gray-500 mb-2 font-sans">Imagen Guardada Actual:</p>
+                            <div className="relative w-40 h-40 mx-auto md:mx-0">
+                              <img 
+                                src={getImagePath(formData.imagen)} 
+                                alt="Actual" 
+                                className="w-full h-full object-contain rounded-lg border bg-white p-2"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData(prev => ({ ...prev, imagen: '' }));
+                                }}
+                                className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-650 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-md text-xs font-bold transition-all hover:scale-110 active:scale-90"
+                                title="Remover imagen"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {formData.imagen && !uploading && (
+                          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p className="text-xs text-green-800 break-all font-sans font-semibold">
+                              ✓ Enlace seguro: {formData.imagen}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="mt-4 border-t pt-4">
+                          <p className="text-xs text-gray-500 mb-2 font-sans">O ingresar enlace HTTP manual:</p>
+                          <input
+                            type="text"
+                            name="imagen"
+                            value={formData.imagen}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-sm shadow-sm"
+                            placeholder="https://example.com/remera.jpg"
                           />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedFile(null);
-                              setPreviewUrl(null);
-                              if (!editingProduct) {
-                                setFormData(prev => ({ ...prev, imagen: '' }));
-                              }
-                            }}
-                            className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-650 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-md text-xs font-bold transition-all hover:scale-110 active:scale-90"
-                            title="Remover imagen"
-                          >
-                            ✕
-                          </button>
                         </div>
-                      </div>
-                    )}
+                    </div>
+                  </div>
+                )}
 
-                    {formData.imagen && !previewUrl && !uploading && (
-                      <div className="mt-4 border-t pt-4">
-                        <p className="text-xs text-gray-500 mb-2 font-sans">Imagen Actual Guardada:</p>
-                        <div className="relative w-36 h-36 mx-auto md:mx-0">
-                          <img 
-                            src={getImagePath(formData.imagen)} 
-                            alt="Actual" 
-                            className="w-full h-full object-contain rounded-lg border bg-white p-2"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormData(prev => ({ ...prev, imagen: '' }));
-                            }}
-                            className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-650 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-md text-xs font-bold transition-all hover:scale-110 active:scale-90"
-                            title="Remover imagen"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {formData.imagen && !uploading && (
-                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-xs text-green-800 break-all font-sans font-semibold">
-                          ✓ URL: {formData.imagen}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="mt-4 border-t pt-4">
-                      <p className="text-xs text-gray-500 mb-2 font-sans">O ingresar URL de imagen de forma manual:</p>
-                      <input
-                        type="text"
-                        name="imagen"
-                        value={formData.imagen}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-sm shadow-sm"
-                        placeholder="https://example.com/imagen.jpg"
+                {/* PASO 3: FICHA TÉCNICA */}
+                {currentStep === 3 && (
+                  <div className="space-y-6 animate-fadeIn">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
+                      Descripción de la prenda *
+                      </label>
+                      <textarea
+                      name="descripcion"
+                      value={formData.descripcion}
+                      onChange={handleChange}
+                      required
+                      rows="4"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none font-sans text-sm md:text-base shadow-sm"
+                      placeholder="Escribe detalles del estampado, estilo, etc..."
                       />
                     </div>
-                </div>
 
-                <div>
-                    <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
-                    Descripción *
-                    </label>
-                    <textarea
-                    name="descripcion"
-                    value={formData.descripcion}
-                    onChange={handleChange}
-                    required
-                    rows="4"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none font-sans text-sm md:text-base"
-                    placeholder="Descripción, talles, material..."
-                    />
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
+                        Composición / Material (Opcional)
+                        </label>
+                        <input
+                        type="text"
+                        name="material"
+                        value={formData.material || ''}
+                        onChange={handleChange}
+                        list="material-suggestions"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-sm md:text-base shadow-sm"
+                        placeholder="Ej: 100% Algodón Peinado"
+                        />
+                        <datalist id="material-suggestions">
+                          <option value="100% Algodón Peinado" />
+                          <option value="100% Algodón Orgánico" />
+                          <option value="Algodón y Poliéster" />
+                          <option value="Poliéster Premium" />
+                        </datalist>
+                      </div>
+                    </div>
 
-                <div>
-                    <label className="block text-sm font-semibold text-gray-custom mb-2 font-sans">
-                    Etiqueta / Leyenda (Opcional)
-                    </label>
-                    <input
-                    type="text"
-                    name="etiqueta"
-                    value={formData.etiqueta || ''}
-                    onChange={handleChange}
-                    list="etiqueta-suggestions"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-sm md:text-base shadow-sm"
-                    placeholder="Ej: 🏷️ Oferta, 💎 Premium, 🔥 Nuevo, o dejar vacío..."
-                    />
-                    <datalist id="etiqueta-suggestions">
-                      <option value="🏷️ Oferta" />
-                      <option value="💎 Premium" />
-                      <option value="🔥 Nuevo" />
-                      <option value="✨ Edición Limitada" />
-                      <option value="👕 Últimas Unidades" />
-                    </datalist>
-                    <p className="text-xs text-gray-500 mt-1 font-sans">
-                      Elige una sugerencia de la lista o escribe tu propio texto libre. Déjalo en blanco para no mostrar ninguna insignia.
-                    </p>
-                </div>
+                    <div className="border-t pt-4">
+                        <label className="block text-sm font-bold text-dark mb-3 font-sans uppercase tracking-wide">
+                        Talles Disponibles en Stock *
+                        </label>
+                        <div className="flex flex-wrap gap-3">
+                            {['S', 'M', 'L', 'XL', 'XXL'].map((talle) => {
+                                const isChecked = formData.talles?.includes(talle);
+                                return (
+                                    <button
+                                        type="button"
+                                        key={talle}
+                                        onClick={() => handleTalleChange(talle)}
+                                        className={`w-12 h-12 rounded-lg font-bold font-sans transition-all flex items-center justify-center border-2 text-sm ${
+                                            isChecked 
+                                                ? 'bg-primary border-primary text-dark shadow-md scale-105' 
+                                                : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300'
+                                        }`}
+                                    >
+                                        {talle}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2 font-sans">
+                          Tilda las casillas de los talles que tengan stock de esta remera. Al menos uno es recomendado.
+                        </p>
+                    </div>
+                  </div>
+                )}
 
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                    type="submit"
-                    disabled={loading || !formData.imagen}
-                    className="flex-1 bg-primary hover:bg-primary-dark text-dark py-3 rounded-lg font-bold transition-colors disabled:opacity-50 text-sm md:text-base"
-                    >
-                    {loading ? 'Guardando...' : (editingProduct ? '✅ Actualizar' : '✅ Agregar')}
-                    </button>
+                {/* BOTONES DE NAVEGACIÓN Y ENVÍO */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-100">
+                    {currentStep > 1 && (
+                      <button
+                      type="button"
+                      onClick={handlePrevStep}
+                      className="flex-1 sm:flex-none px-6 bg-gray-200 hover:bg-gray-300 text-dark py-3 rounded-lg font-bold transition-all hover:scale-105 active:scale-95 text-sm md:text-base flex items-center justify-center gap-1"
+                      >
+                      ⬅️ Atrás
+                      </button>
+                    )}
+
+                    {currentStep < 3 ? (
+                      <button
+                      type="button"
+                      onClick={handleNextStep}
+                      className="flex-1 bg-primary hover:bg-primary-dark text-dark py-3 rounded-lg font-bold transition-all hover:scale-105 active:scale-95 text-sm md:text-base flex items-center justify-center gap-1 shadow-md retro-shadow-sm ml-auto"
+                      >
+                      Siguiente ➡️
+                      </button>
+                    ) : (
+                      <button
+                      type="submit"
+                      disabled={loading || !formData.imagen}
+                      className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50 text-sm md:text-base shadow-md ml-auto"
+                      >
+                      {loading ? '⏳ Guardando...' : (editingProduct ? '✅ Guardar Cambios' : '✅ Crear Remera')}
+                      </button>
+                    )}
+
                     <button
                     type="button"
                     onClick={handleCancel}
-                    className="sm:w-auto px-6 bg-gray-300 hover:bg-gray-custom hover:text-white text-dark py-3 rounded-lg font-bold transition-colors text-sm md:text-base"
+                    className="flex-1 sm:flex-none px-6 bg-red-100 hover:bg-red-200 text-red-700 py-3 rounded-lg font-bold transition-all hover:scale-105 active:scale-95 text-sm md:text-base"
                     >
                     Cancelar
                     </button>

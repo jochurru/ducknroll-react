@@ -14,7 +14,7 @@ const ProductDetailPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [selectedSize, setSelectedSize] = useState('M');
+  const [selectedSize, setSelectedSize] = useState('');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -24,6 +24,12 @@ const ProductDetailPage = () => {
         setLoading(true);
         const data = await getProduct(id);
         setProduct(data);
+        
+        // Inicializar el talle seleccionado dinámicamente
+        const availableSizes = data && Array.isArray(data.talles) && data.talles.length > 0
+          ? data.talles
+          : ['S', 'M', 'L', 'XL', 'XXL'];
+        setSelectedSize(availableSizes[0] || 'M');
       } catch (error) {
         console.error('Error al cargar producto:', error);
       } finally {
@@ -45,7 +51,9 @@ const ProductDetailPage = () => {
   // Soporte para etiqueta administrable
   const hasEtiquetaDefined = product && product.etiqueta !== undefined;
   const etiquetaToShow = product && (hasEtiquetaDefined ? product.etiqueta : (isPremium ? '💎 Premium' : '🏷️ Oferta'));
-  const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+  const sizes = product && Array.isArray(product.talles) && product.talles.length > 0
+    ? product.talles
+    : ['S', 'M', 'L', 'XL', 'XXL'];
 
   if (loading) {
     return (
@@ -127,6 +135,22 @@ const ProductDetailPage = () => {
                 <p className="text-gray-custom mb-6 leading-relaxed font-sans text-sm md:text-base">
                   {product.descripcion}
                 </p>
+
+                {/* Ficha Técnica: Categoría y Material */}
+                <div className="flex flex-wrap gap-3 mb-6 text-sm">
+                  {product.categoria && product.categoria !== 'general' && (
+                    <div className="flex items-center gap-2 bg-gray-100 border border-gray-250 px-3 py-1.5 rounded-lg text-dark font-sans font-semibold shadow-sm">
+                      <span>🏷️</span>
+                      <span>Categoría: <span className="uppercase text-xs font-bold text-gray-custom">{product.categoria}</span></span>
+                    </div>
+                  )}
+                  {product.material && (
+                    <div className="flex items-center gap-2 bg-gray-100 border border-gray-250 px-3 py-1.5 rounded-lg text-dark font-sans font-semibold shadow-sm">
+                      <span>🧵</span>
+                      <span>Composición: <span className="text-gray-custom">{product.material}</span></span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Selector de Talles Interactivo */}
                 <div className="mb-6">

@@ -86,7 +86,7 @@ export const getProductById = async (req, res) => {
  */
 export const createProduct = async (req, res) => {
   try {
-    const { nombre, precio, imagen, descripcion, etiqueta } = req.body;
+    const { nombre, precio, imagen, descripcion, etiqueta, categoria, material, talles } = req.body;
 
     // Validación básica de campos requeridos
     if (!nombre || precio === undefined || !imagen) {
@@ -101,6 +101,9 @@ export const createProduct = async (req, res) => {
       imagen,
       descripcion: descripcion || '',
       etiqueta: etiqueta || '',
+      categoria: categoria || 'general',
+      material: material || '',
+      talles: Array.isArray(talles) ? talles : [],
       createdAt: new Date().toISOString()
     };
 
@@ -121,7 +124,7 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, precio, imagen, descripcion, etiqueta } = req.body;
+    const { nombre, precio, imagen, descripcion, etiqueta, categoria, material, talles } = req.body;
 
     const docRef = db.collection('productos').doc(id);
     const doc = await docRef.get();
@@ -136,6 +139,9 @@ export const updateProduct = async (req, res) => {
     if (imagen !== undefined) updateData.imagen = imagen;
     if (descripcion !== undefined) updateData.descripcion = descripcion;
     if (etiqueta !== undefined) updateData.etiqueta = etiqueta;
+    if (categoria !== undefined) updateData.categoria = categoria;
+    if (material !== undefined) updateData.material = material;
+    if (talles !== undefined) updateData.talles = Array.isArray(talles) ? talles : [];
     updateData.updatedAt = new Date().toISOString();
 
     await docRef.update(updateData);
