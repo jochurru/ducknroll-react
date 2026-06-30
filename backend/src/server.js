@@ -9,8 +9,29 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middlewares globales
-app.use(cors());
+// Configuración avanzada de CORS para producción
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5000',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Si no hay origen (ej. Postman) o no se ha configurado FRONTEND_URL, permitir todo
+    if (!origin || !process.env.FRONTEND_URL) {
+      return callback(null, true);
+    }
+    // Permitir localhost, dominios autorizados y subdominios de Vercel
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    return callback(new Error('No permitido por la política de CORS de Duck\'n Roll'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(morgan('dev')); // Logger para registrar las peticiones HTTP en consola
 
