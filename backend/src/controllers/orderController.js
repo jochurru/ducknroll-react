@@ -409,14 +409,21 @@ export const obtenerOrdenPorId = async (req, res) => {
 export const obtenerOrdenesUsuario = async (req, res) => {
   try {
     const { email } = req.params;
+    // Buscamos sin ordenar en Firestore para evitar exigir un índice compuesto en la consola
     const snapshot = await db.collection('ordenes')
       .where('email', '==', email)
-      .orderBy('createdAt', 'desc')
       .get();
 
     const orders = [];
     snapshot.forEach(doc => {
       orders.push({ id: doc.id, ...doc.data() });
+    });
+
+    // Ordenar en memoria por fecha de creación descendente (los más recientes primero)
+    orders.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.fecha || 0);
+      const dateB = new Date(b.createdAt || b.fecha || 0);
+      return dateB - dateA;
     });
 
     res.status(200).json(orders);
