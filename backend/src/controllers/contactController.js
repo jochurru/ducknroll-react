@@ -155,11 +155,31 @@ export const enviarContacto = async (req, res) => {
     
     try {
       const formspreeUrl = process.env.FORMSPREE_URL || 'https://formspree.io/f/xpwyepwj';
+      const messageContent = `
+==========================================
+📬 NUEVO MENSAJE DE CONTACTO - DUCK'N ROLL
+==========================================
+
+👤 DATOS DEL EMISOR
+------------------------------------------
+Nombre: ${nombre}
+Email: ${email}
+
+💬 MENSAJE
+------------------------------------------
+${mensaje}
+
+==========================================
+Fecha: ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })} hs
+==========================================
+      `;
+
       await axios.post(formspreeUrl, {
+        message: messageContent,
+        _replyto: email,
+        _subject: `📬 Mensaje de contacto de ${nombre}`,
         nombre: nombre,
-        email: email,
-        mensaje: mensaje,
-        _subject: `📬 Mensaje de contacto de ${nombre} (Fallback Formspree)`
+        email: email
       });
       
       console.log('✅ Notificación de contacto enviada con éxito a Formspree.');

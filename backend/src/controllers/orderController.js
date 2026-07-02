@@ -28,6 +28,11 @@ export const enviarEmailOrden = async (req, res) => {
   const { email, cliente, productos, total, notas, fecha, orderId } = req.body;
   let orderSaved = false;
   let numeroOrden = orderId || `DK${Date.now()}`;
+  
+  const fechaFormateada = fecha
+    ? new Date(fecha).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })
+    : new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
+
   try {
 
     if (!email || !cliente || !productos || !total) {
@@ -35,9 +40,6 @@ export const enviarEmailOrden = async (req, res) => {
     }
 
     const transporter = crearTransporter();
-    const fechaFormateada = fecha
-      ? new Date(fecha).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })
-      : new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
 
 
 
@@ -273,19 +275,48 @@ export const enviarEmailOrden = async (req, res) => {
       const formspreeUrl = process.env.FORMSPREE_URL || 'https://formspree.io/f/xpwyepwj';
       
       const productosTexto = productos.map(p => 
-        `- ${p.nombre} (Talle: ${p.talle || p.talleSeleccionado || '-'}) x${p.cantidad} - Subtotal: $${Number(p.subtotal).toLocaleString('es-AR')}`
+        `- ${p.nombre} (Talle: ${p.talle || p.talleSeleccionado || '-'}) x${p.cantidad} = $${Number(p.subtotal).toLocaleString('es-AR')}`
       ).join('\n');
 
+      const messageContent = `
+==========================================
+🦆 NUEVO PEDIDO - DUCK'N ROLL
+==========================================
+
+📋 DATOS DEL CLIENTE
+------------------------------------------
+Nombre: ${cliente.nombre} ${cliente.apellido}
+Email: ${email}
+Teléfono: ${cliente.telefono}
+
+📦 DIRECCIÓN DE ENVÍO
+------------------------------------------
+Dirección: ${cliente.direccion}
+Ciudad: ${cliente.ciudad}
+Código Postal: ${cliente.codigoPostal}
+
+🛒 PRODUCTOS
+------------------------------------------
+${productosTexto}
+
+💰 TOTAL: $${Number(total).toLocaleString('es-AR')}
+
+${notas ? `📝 NOTAS: ${notas}` : ''}
+
+==========================================
+Pedido: #${numeroOrden}
+Fecha: ${fechaFormateada}
+==========================================
+      `;
+
       await axios.post(formspreeUrl, {
-        orderId: numeroOrden,
-        cliente_nombre: `${cliente.nombre} ${cliente.apellido}`,
-        cliente_email: email,
-        cliente_telefono: cliente.telefono,
-        direccion_envio: `${cliente.direccion}, ${cliente.ciudad} (CP: ${cliente.codigoPostal})`,
-        total_compra: `$${Number(total).toLocaleString('es-AR')}`,
-        productos_resumen: productosTexto,
-        notas_adicionales: notas || 'Ninguna',
-        _subject: `🛒 Nuevo Pedido #${numeroOrden} — $${Number(total).toLocaleString('es-AR')} (Fallback Formspree)`
+        message: messageContent,
+        _replyto: email,
+        _subject: `🛒 Nuevo Pedido #${numeroOrden} — $${Number(total).toLocaleString('es-AR')}`,
+        nombre: `${cliente.nombre} ${cliente.apellido}`,
+        email: email,
+        total: `$${Number(total).toLocaleString('es-AR')}`,
+        orderId: numeroOrden
       });
       
       console.log(`✅ Notificación de orden #${numeroOrden} enviada con éxito a Formspree.`);
