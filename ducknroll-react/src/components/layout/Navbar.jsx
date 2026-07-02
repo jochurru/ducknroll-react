@@ -54,6 +54,9 @@ return (
         
         {isAuthenticated ? (
             <>
+            <Link to="/mis-pedidos" className="hover:text-primary transition-colors font-semibold">
+                Mis Pedidos
+            </Link>
             {isAdmin && (
               <Link to="/admin" className="hover:text-primary transition-colors font-semibold">
                   Admin
@@ -157,6 +160,13 @@ return (
               
               {isAuthenticated ? (
               <>
+                  <Link 
+                  to="/mis-pedidos" 
+                  onClick={closeMenu}
+                  className="flex items-center px-4 py-3.5 hover:text-primary hover:bg-white/5 transition-colors font-semibold"
+                  >
+                  Mis Pedidos
+                  </Link>
                   {isAdmin && (
                     <Link 
                     to="/admin" 

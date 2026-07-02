@@ -299,65 +299,69 @@ export const migrateImagesToCloudinary = async (req, res) => {
  * Descontar stock de productos al confirmarse una compra.
  * Recibe un array de productos con 'id', 'talle' y 'cantidad' y descuenta el stock en Firestore.
  */
+export const descontarInventarioFirestore = async (productos) => {
+  if (!Array.isArray(productos) || productos.length === 0) {
+    throw new Error('La petición debe incluir un array "productos".');
+  }
+
+  console.log('🔄 Iniciando descuento de inventario por compra en Firestore...');
+  const dbBatch = db.batch();
+  const errors = [];
+
+  for (const item of productos) {
+    const { id, talle, cantidad } = item;
+    
+    if (!id || !talle || !cantidad) {
+      errors.push(`Ítem inválido: faltan campos requeridos en ${JSON.stringify(item)}`);
+      continue;
+    }
+
+    const docRef = db.collection('productos').doc(id.toString());
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      errors.push(`El producto con ID ${id} no existe.`);
+      continue;
+    }
+
+    const prodData = doc.data();
+    const currentInventario = prodData.inventario || {};
+    const currentStock = currentInventario[talle] !== undefined ? Number(currentInventario[talle]) : 0;
+
+    // Calcular nuevo stock (mínimo 0)
+    const newStock = Math.max(0, currentStock - Number(cantidad));
+    
+    const updatedInventario = {
+      ...currentInventario,
+      [talle]: newStock
+    };
+
+    dbBatch.update(docRef, {
+      inventario: updatedInventario,
+      updatedAt: new Date().toISOString()
+    });
+    
+    console.log(`📉 Stock de "${prodData.nombre}" (Talle: ${talle}) reducido de ${currentStock} a ${newStock}`);
+  }
+
+  if (errors.length > 0 && errors.length === productos.length) {
+    throw new Error(`No se pudo procesar ningún descuento de stock. Detalle: ${errors.join(', ')}`);
+  }
+
+  await dbBatch.commit();
+  return { success: true, errors: errors.length > 0 ? errors : null };
+};
+
 export const descontarStock = async (req, res) => {
   try {
     const { productos } = req.body;
-
-    if (!Array.isArray(productos) || productos.length === 0) {
-      return res.status(400).json({ error: 'La petición debe incluir un array "productos".' });
-    }
-
-    console.log('🔄 Iniciando descuento de inventario por compra...');
-    const dbBatch = db.batch();
-    const errors = [];
-
-    for (const item of productos) {
-      const { id, talle, cantidad } = item;
-      
-      if (!id || !talle || !cantidad) {
-        errors.push(`Ítem inválido: faltan campos requeridos en ${JSON.stringify(item)}`);
-        continue;
-      }
-
-      const docRef = db.collection('productos').doc(id.toString());
-      const doc = await docRef.get();
-
-      if (!doc.exists) {
-        errors.push(`El producto con ID ${id} no existe.`);
-        continue;
-      }
-
-      const prodData = doc.data();
-      const currentInventario = prodData.inventario || {};
-      const currentStock = currentInventario[talle] !== undefined ? Number(currentInventario[talle]) : 0;
-
-      // Calcular nuevo stock (mínimo 0)
-      const newStock = Math.max(0, currentStock - Number(cantidad));
-      
-      const updatedInventario = {
-        ...currentInventario,
-        [talle]: newStock
-      };
-
-      dbBatch.update(docRef, {
-        inventario: updatedInventario,
-        updatedAt: new Date().toISOString()
-      });
-      
-      console.log(`📉 Stock de "${prodData.nombre}" (Talle: ${talle}) reducido de ${currentStock} a ${newStock}`);
-    }
-
-    if (errors.length > 0 && errors.length === productos.length) {
-      return res.status(400).json({ error: 'No se pudo procesar ningún descuento de stock.', details: errors });
-    }
-
-    await dbBatch.commit();
+    const result = await descontarInventarioFirestore(productos);
     res.status(200).json({
       message: 'Inventario actualizado con éxito tras la compra.',
-      erroresNoCriticos: errors.length > 0 ? errors : null
+      erroresNoCriticos: result.errors
     });
   } catch (error) {
     console.error('❌ Error en descontarStock:', error);
-    res.status(500).json({ error: 'Error interno al procesar el descuento de inventario.' });
+    res.status(500).json({ error: error.message || 'Error interno al procesar el descuento de inventario.' });
   }
 };

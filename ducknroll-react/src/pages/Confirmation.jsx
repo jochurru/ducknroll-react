@@ -1,8 +1,62 @@
+import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
+import api from '../services/api';
 
 const Confirmation = () => {
   const location = useLocation();
-  const { orderId, orderData } = location.state || {};
+  const { clearCart } = useCart();
+  const [orderId, setOrderId] = useState(location.state?.orderId || '');
+  const [orderData, setOrderData] = useState(location.state?.orderData || null);
+  const [loading, setLoading] = useState(!location.state?.orderId);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    // Si ya viene de la navegación interna con el state
+    if (location.state?.orderId) {
+      clearCart();
+      return;
+    }
+
+    // Si viene redireccionado de Mercado Pago
+    const searchParams = new URLSearchParams(location.search);
+    const idFromUrl = searchParams.get('orderId');
+
+    if (idFromUrl) {
+      setOrderId(idFromUrl);
+      const fetchOrderDetails = async () => {
+        try {
+          const response = await api.get(`/ordenes/${idFromUrl}`);
+          setOrderData(response.data);
+          clearCart(); // Limpiamos carrito sólo al verificar que la orden ya existe en la BD
+        } catch (err) {
+          console.error('❌ Error al buscar la orden en confirmación:', err);
+          setError('Tu pago fue procesado. Si el resumen no carga, revisá tu correo.');
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchOrderDetails();
+    } else {
+      setLoading(false);
+    }
+  }, [location, clearCart]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center p-8 bg-white rounded-2xl shadow-md border border-gray-200 max-w-sm flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+          <h2 className="text-lg font-bold text-dark font-sans">
+            Cargando confirmación...
+          </h2>
+          <p className="text-gray-custom mt-2 font-sans text-xs">
+            Buscando los detalles de tu compra.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!orderId) {
     return (
@@ -13,7 +67,7 @@ const Confirmation = () => {
             No se encontró información del pedido
           </h2>
           <p className="text-gray-custom mb-6 font-sans text-sm">
-            No pudimos recuperar los detalles del pedido solicitado. Si acabas de comprar, verifica tu bandeja de entrada.
+            No pudimos recuperar los detalles del pedido solicitado. Si acabas de comprar, verifica tu bandeja de entrada o escribinos a WhatsApp.
           </p>
           <Link to="/" className="bg-primary hover:bg-primary-dark text-dark px-6 py-2.5 rounded-lg font-bold transition-all shadow-sm">
             Volver al inicio

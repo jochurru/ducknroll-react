@@ -24,8 +24,8 @@ const crearTransporter = () => {
  *  - Email de notificación al admin (johnnychurra@gmail.com) con todos los detalles
  *  - Email de confirmación al cliente con resumen de su compra
  */
-export const enviarEmailOrden = async (req, res) => {
-  const { email, cliente, productos, total, notas, fecha, orderId } = req.body;
+export const registrarYEnviarEmailsPedido = async (orderData, orderId) => {
+  const { email, cliente, productos, total, notas, fecha, estado } = orderData;
   let orderSaved = false;
   let numeroOrden = orderId || `DK${Date.now()}`;
   
@@ -36,12 +36,10 @@ export const enviarEmailOrden = async (req, res) => {
   try {
 
     if (!email || !cliente || !productos || !total) {
-      return res.status(400).json({ error: 'Datos de orden incompletos.' });
+      throw new Error('Datos de orden incompletos.');
     }
 
     const transporter = crearTransporter();
-
-
 
     // Registrar la orden en Firebase Firestore antes de intentar mandar el email
     try {
@@ -58,7 +56,7 @@ export const enviarEmailOrden = async (req, res) => {
         total: Number(total),
         notas: notas || '',
         fecha: fecha || new Date().toISOString(),
-        estado: 'pendiente',
+        estado: estado || 'pendiente',
         createdAt: new Date().toISOString()
       });
       console.log(`✅ Orden #${numeroOrden} registrada con éxito en Firestore.`);
@@ -261,10 +259,11 @@ export const enviarEmailOrden = async (req, res) => {
     ]);
 
     console.log(`📦 Emails de orden #${numeroOrden} enviados: admin + cliente (${email})`);
-    res.status(200).json({
-      message: 'Emails de orden enviados correctamente.',
-      orderId: numeroOrden
-    });
+    return {
+      success: true,
+      orderSaved,
+      numeroOrden
+    };
 
   } catch (error) {
     console.error('❌ Error en Nodemailer (Ordenes):', error.message || error);
@@ -321,28 +320,108 @@ Fecha: ${fechaFormateada}
       
       console.log(`✅ Notificación de orden #${numeroOrden} enviada con éxito a Formspree.`);
       
-      return res.status(200).json({
-        message: 'Pedido registrado en base de datos y notificación enviada correctamente.',
-        orderId: numeroOrden,
-        _fallback: 'formspree'
-      });
+      return {
+        success: true,
+        orderSaved,
+        numeroOrden,
+        fallback: 'formspree'
+      };
     } catch (formspreeError) {
       console.error('❌ Error crítico: También falló el desvío a Formspree:', formspreeError.message);
       
-      if (orderSaved) {
-        // Si ya se guardó en la base de datos, no devolvemos un 500 para no trabar el flujo de compra
-        return res.status(200).json({
-          message: 'Pedido registrado en base de datos, pero hubo un problema al enviar la confirmación.',
-          orderId: numeroOrden,
-          warning: 'No se pudo enviar la notificación por email.'
-        });
-      }
-      
-      res.status(500).json({
-        error: 'No pudimos registrar tu pedido ni enviar el email. Por favor, intentá de nuevo.',
-        _debug: error.message,
-        _code: error.code
+      return {
+        success: false,
+        orderSaved,
+        numeroOrden,
+        error: formspreeError.message
+      };
+    }
+  }
+};
+
+/**
+ * POST /api/ordenes/email
+ * Recibe el orderData completo y ejecuta el registro y envío de correos.
+ */
+export const enviarEmailOrden = async (req, res) => {
+  try {
+    const { email, cliente, productos, total, notas, fecha, orderId } = req.body;
+
+    if (!email || !cliente || !productos || !total) {
+      return res.status(400).json({ error: 'Datos de orden incompletos.' });
+    }
+
+    const result = await registrarYEnviarEmailsPedido({
+      email,
+      cliente,
+      productos,
+      total,
+      notas,
+      fecha,
+      estado: 'pendiente'
+    }, orderId);
+
+    if (result.success || result.orderSaved) {
+      return res.status(200).json({
+        message: result.fallback 
+          ? 'Pedido registrado en base de datos, pero hubo un problema al enviar la confirmación por email.' 
+          : 'Emails de orden enviados correctamente.',
+        orderId: result.numeroOrden,
+        _fallback: result.fallback
       });
     }
+
+    res.status(500).json({
+      error: 'No pudimos registrar tu pedido ni enviar el email. Por favor, intentá de nuevo.',
+      _debug: result.error
+    });
+  } catch (error) {
+    console.error('❌ Error crítico en enviarEmailOrden:', error);
+    res.status(500).json({ error: 'Error interno al procesar el pedido.', details: error.message });
+  }
+};
+
+/**
+ * GET /api/ordenes/:id
+ * Obtiene los detalles de una orden por su ID.
+ */
+export const obtenerOrdenPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const docRef = db.collection('ordenes').doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'La orden solicitada no existe.' });
+    }
+
+    res.status(200).json({ id: doc.id, ...doc.data() });
+  } catch (error) {
+    console.error(`❌ Error en obtenerOrdenPorId (ID: ${req.params.id}):`, error);
+    res.status(500).json({ error: 'Error interno del servidor al buscar la orden.' });
+  }
+};
+
+/**
+ * GET /api/ordenes/usuario/:email
+ * Obtiene todas las órdenes asociadas a un email de usuario, ordenadas por fecha descendente.
+ */
+export const obtenerOrdenesUsuario = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const snapshot = await db.collection('ordenes')
+      .where('email', '==', email)
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    const orders = [];
+    snapshot.forEach(doc => {
+      orders.push({ id: doc.id, ...doc.data() });
+    });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error(`❌ Error en obtenerOrdenesUsuario (Email: ${req.params.email}):`, error);
+    res.status(500).json({ error: 'Error interno del servidor al buscar las órdenes del usuario.' });
   }
 };

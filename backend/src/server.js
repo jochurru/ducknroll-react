@@ -51,11 +51,13 @@ import productRoutes from './routes/productRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 app.use('/api/productos', productRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/contacto', contactRoutes);
 app.use('/api/ordenes', orderRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Manejo de rutas no encontradas (404)
 app.use((req, res, next) => {

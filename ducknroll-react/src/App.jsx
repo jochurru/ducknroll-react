@@ -9,6 +9,7 @@ import Admin from './pages/Admin';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Confirmation from './pages/Confirmation';
+import MyOrders from './pages/MyOrders';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/Scrolltotop';
 
@@ -28,6 +29,14 @@ function App() {
           <Route path="confirmacion" element={<Confirmation />} />
           
           {/* Rutas protegidas */}
+          <Route 
+            path="mis-pedidos" 
+            element={
+              <ProtectedRoute>
+                <MyOrders />
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="admin" 
             element={

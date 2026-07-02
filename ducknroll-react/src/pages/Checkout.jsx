@@ -90,8 +90,9 @@ const Checkout = () => {
     try {
       const newOrderId = `DK${Date.now()}`;
 
-      const orderData = {
-        email: formData.email,
+      // Crear la preferencia de pago en el backend
+      const response = await api.post('/payments/preferencia', {
+        items: cart,
         cliente: {
           nombre: formData.nombre,
           apellido: formData.apellido,
@@ -100,77 +101,19 @@ const Checkout = () => {
           ciudad: formData.ciudad,
           codigoPostal: formData.codigoPostal
         },
-        productos: cart.map(item => ({
-          id: item.id,
-          nombre: item.nombre,
-          precio: parseFloat(item.precio),
-          talle: item.talleSeleccionado || '-',
-          cantidad: item.quantity,
-          subtotal: parseFloat(item.precio) * item.quantity
-        })),
-        total: getTotalPrice(),
-        notas: formData.notas,
-        fecha: new Date().toISOString()
-      };
+        email: formData.email,
+        notes: formData.notas,
+        orderId: newOrderId
+      });
 
-      await sendOrderEmail(orderData, newOrderId);
-
-      // Descontar inventario de remeras en el backend
-      try {
-        const discountStockData = {
-          productos: cart.map(item => ({
-            id: item.id,
-            talle: item.talleSeleccionado || 'M',
-            cantidad: item.quantity
-          }))
-        };
-        await api.post('/productos/descontar-stock', discountStockData);
-      } catch (stockError) {
-        console.error('⚠️ Error no crítico al descontar stock:', stockError);
+      // Redirigir al checkout seguro de Mercado Pago (usando el sandbox de pruebas)
+      const initPoint = response.data.sandbox_init_point || response.data.init_point;
+      
+      if (initPoint) {
+        window.location.href = initPoint;
+      } else {
+        throw new Error('No se pudo obtener el enlace de pago de Mercado Pago.');
       }
-
-
-      clearCart();
-
-      // MOSTRAR SWEETALERT2 CON ANIMACIÓN
-      await Swal.fire({
-        icon: 'success',
-        title: '¡Pedido Confirmado!',
-        html: `
-          <div class="text-center">
-            <p class="text-gray-600 mb-2">Tu pedido ha sido procesado exitosamente</p>
-            <p class="text-sm text-gray-500 mb-4">
-              Número de pedido: <span class="font-bold" style="color: #FFC700;">#${newOrderId}</span>
-            </p>
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-              <p class="text-sm text-green-800">
-                Te enviamos un email de confirmación con todos los detalles de tu compra 📧
-              </p>
-            </div>
-            <p class="text-gray-500 text-sm">
-              ¡Muchas gracias por confiar en Duck'n Roll! 🦆
-            </p>
-          </div>
-        `,
-        confirmButtonColor: '#FFD700',
-        confirmButtonText: 'Ver detalles del pedido',
-        allowOutsideClick: false,
-        customClass: {
-          popup: 'rounded-2xl shadow-xl border border-gray-150',
-          title: 'font-retro text-xl pt-4',
-          confirmButton: 'font-bold px-6 py-3 rounded-lg text-dark transition-all hover:scale-105 active:scale-95'
-        },
-        showClass: {
-          popup: 'animate-fadeIn'
-        }
-      });
-
-      navigate('/confirmacion', { 
-        state: { 
-          orderId: newOrderId,
-          orderData 
-        } 
-      });
 
     } catch (error) {
       console.error('Error al procesar pedido:', error);
@@ -178,7 +121,7 @@ const Checkout = () => {
       Swal.fire({
         icon: 'error',
         title: 'Error al procesar',
-        text: 'Hubo un error al enviar tu pedido. Por favor, intentá nuevamente.',
+        text: 'Hubo un error al iniciar el pago con Mercado Pago. Por favor, intentá nuevamente.',
         confirmButtonColor: '#FFD700',
         confirmButtonText: 'Entendido',
         customClass: {
@@ -188,7 +131,7 @@ const Checkout = () => {
         }
       });
       
-      setError('Hubo un error al procesar tu pedido. Por favor, intentá nuevamente.');
+      setError('Hubo un error al iniciar el pago. Por favor, intentá nuevamente.');
     } finally {
       setLoading(false);
     }

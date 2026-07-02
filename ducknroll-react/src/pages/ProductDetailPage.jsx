@@ -4,6 +4,7 @@ import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
 import { toastSuccess } from '../utils/sweetalert';
 import { ProductDetailSkeleton } from '../components/Skeleton';
+import { Helmet } from 'react-helmet-async';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -104,6 +105,14 @@ const ProductDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
+      <Helmet>
+        <title>{product.nombre} - Duck'n Roll</title>
+        <meta name="description" content={product.descripcion || `Comprá la remera ${product.nombre} de alta gama en Duck'n Roll. 100% Algodón Premium.`} />
+        <meta property="og:title" content={`${product.nombre} - Duck'n Roll`} />
+        <meta property="og:description" content={product.descripcion || `Remera de alta gama en Duck'n Roll.`} />
+        <meta property="og:image" content={getImagePath(product.imagen)} />
+        <meta property="og:type" content="product" />
+      </Helmet>
       <div className="container mx-auto px-4 max-w-5xl">
         {/* Breadcrumb estético */}
         <div className="mb-8 text-sm text-gray-custom font-sans flex items-center gap-2">

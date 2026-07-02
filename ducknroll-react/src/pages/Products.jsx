@@ -41,8 +41,11 @@ const Products = () => {
       return matchesSearch && parseFloat(product.precio) <= 15000;
     }
 
-    const category = getProductCategory(product);
-    return matchesSearch && category === selectedCategory;
+    const productCategory = product.categoria 
+      ? product.categoria.toLowerCase() 
+      : getProductCategory(product).toLowerCase();
+      
+    return matchesSearch && productCategory === selectedCategory.toLowerCase();
   });
 
   // 2. Ordenar productos filtrados
@@ -60,7 +63,7 @@ const Products = () => {
     return parseFloat(a.id) - parseFloat(b.id);
   });
 
-  const categories = ['Todas', 'Gaming', 'Rock', 'Retro', 'Ofertas'];
+  const categories = ['Todas', 'Gaming', 'Rock', 'Retro', 'Anime', 'Ofertas'];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 sm:py-12">

@@ -5,13 +5,16 @@ import App from './App.jsx'
 import { ProductProvider } from './context/ProductContext'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
+import { HelmetProvider } from 'react-helmet-async'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <ProductProvider>
         <CartProvider>
-          <App />
+          <HelmetProvider>
+            <App />
+          </HelmetProvider>
         </CartProvider>
       </ProductProvider>
     </AuthProvider>
