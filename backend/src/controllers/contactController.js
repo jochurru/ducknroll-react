@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import axios from 'axios';
 
 /**
  * Crea y devuelve el transporter de nodemailer configurado con Gmail.
@@ -33,8 +34,8 @@ const crearTransporter = () => {
  * Recibe { nombre, email, mensaje } y envía un correo a johnnychurra@gmail.com.
  */
 export const enviarContacto = async (req, res) => {
+  const { nombre, email, mensaje } = req.body;
   try {
-    const { nombre, email, mensaje } = req.body;
 
     if (!nombre || !email || !mensaje) {
       return res.status(400).json({ error: 'Por favor completá todos los campos requeridos.' });
@@ -149,11 +150,30 @@ export const enviarContacto = async (req, res) => {
     res.status(200).json({ message: '¡Mensaje enviado con éxito! Te responderemos muy pronto.' });
 
   } catch (error) {
-    console.error('❌ Error al enviar email de contacto:', error.message, error.code);
-    res.status(500).json({
-      error: 'No pudimos enviar tu mensaje. Por favor, intentá más tarde o comunicate por WhatsApp.',
-      _debug: error.message,
-      _code: error.code
-    });
+    console.error('❌ Error en Nodemailer (Contacto):', error.message || error);
+    console.log('🔄 Iniciando desvío de contingencia a Formspree para contacto...');
+    
+    try {
+      const formspreeUrl = process.env.FORMSPREE_URL || 'https://formspree.io/f/xpwyepwj';
+      await axios.post(formspreeUrl, {
+        nombre: nombre,
+        email: email,
+        mensaje: mensaje,
+        _subject: `📬 Mensaje de contacto de ${nombre} (Fallback Formspree)`
+      });
+      
+      console.log('✅ Notificación de contacto enviada con éxito a Formspree.');
+      return res.status(200).json({ 
+        message: '¡Mensaje enviado con éxito! Te responderemos muy pronto.',
+        _fallback: 'formspree'
+      });
+    } catch (formspreeError) {
+      console.error('❌ Error crítico: También falló el desvío a Formspree:', formspreeError.message);
+      res.status(500).json({
+        error: 'No pudimos enviar tu mensaje. Por favor, intentá más tarde o comunicate por WhatsApp.',
+        _debug: error.message,
+        _code: error.code
+      });
+    }
   }
 };

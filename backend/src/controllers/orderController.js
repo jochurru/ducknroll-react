@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { db } from '../config/firebase.js';
+import axios from 'axios';
 
 /**
  * Crea y devuelve el transporter de nodemailer configurado con Gmail.
@@ -24,10 +25,10 @@ const crearTransporter = () => {
  *  - Email de confirmación al cliente con resumen de su compra
  */
 export const enviarEmailOrden = async (req, res) => {
+  const { email, cliente, productos, total, notas, fecha, orderId } = req.body;
   let orderSaved = false;
-  let numeroOrden = `DK${Date.now()}`;
+  let numeroOrden = orderId || `DK${Date.now()}`;
   try {
-    const { email, cliente, productos, total, notas, fecha, orderId } = req.body;
 
     if (!email || !cliente || !productos || !total) {
       return res.status(400).json({ error: 'Datos de orden incompletos.' });
@@ -38,9 +39,7 @@ export const enviarEmailOrden = async (req, res) => {
       ? new Date(fecha).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })
       : new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
 
-    if (orderId) {
-      numeroOrden = orderId;
-    }
+
 
     // Registrar la orden en Firebase Firestore antes de intentar mandar el email
     try {
@@ -266,19 +265,53 @@ export const enviarEmailOrden = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error al enviar emails de orden:', error);
-    if (orderSaved) {
-      // Si ya se guardó en la base de datos, no devolvemos un 500 para no trabar el flujo de compra
-      return res.status(200).json({
-        message: 'Pedido registrado en base de datos, pero hubo un problema al enviar la confirmación por email.',
+    console.error('❌ Error en Nodemailer (Ordenes):', error.message || error);
+    
+    // Intentar desviar a Formspree como contingencia
+    console.log('🔄 Iniciando desvío de contingencia a Formspree para la orden...');
+    try {
+      const formspreeUrl = process.env.FORMSPREE_URL || 'https://formspree.io/f/xpwyepwj';
+      
+      const productosTexto = productos.map(p => 
+        `- ${p.nombre} (Talle: ${p.talle || p.talleSeleccionado || '-'}) x${p.cantidad} - Subtotal: $${Number(p.subtotal).toLocaleString('es-AR')}`
+      ).join('\n');
+
+      await axios.post(formspreeUrl, {
         orderId: numeroOrden,
-        warning: 'No se pudo enviar el correo de confirmación por email.'
+        cliente_nombre: `${cliente.nombre} ${cliente.apellido}`,
+        cliente_email: email,
+        cliente_telefono: cliente.telefono,
+        direccion_envio: `${cliente.direccion}, ${cliente.ciudad} (CP: ${cliente.codigoPostal})`,
+        total_compra: `$${Number(total).toLocaleString('es-AR')}`,
+        productos_resumen: productosTexto,
+        notas_adicionales: notas || 'Ninguna',
+        _subject: `🛒 Nuevo Pedido #${numeroOrden} — $${Number(total).toLocaleString('es-AR')} (Fallback Formspree)`
+      });
+      
+      console.log(`✅ Notificación de orden #${numeroOrden} enviada con éxito a Formspree.`);
+      
+      return res.status(200).json({
+        message: 'Pedido registrado en base de datos y notificación enviada correctamente.',
+        orderId: numeroOrden,
+        _fallback: 'formspree'
+      });
+    } catch (formspreeError) {
+      console.error('❌ Error crítico: También falló el desvío a Formspree:', formspreeError.message);
+      
+      if (orderSaved) {
+        // Si ya se guardó en la base de datos, no devolvemos un 500 para no trabar el flujo de compra
+        return res.status(200).json({
+          message: 'Pedido registrado en base de datos, pero hubo un problema al enviar la confirmación.',
+          orderId: numeroOrden,
+          warning: 'No se pudo enviar la notificación por email.'
+        });
+      }
+      
+      res.status(500).json({
+        error: 'No pudimos registrar tu pedido ni enviar el email. Por favor, intentá de nuevo.',
+        _debug: error.message,
+        _code: error.code
       });
     }
-    res.status(500).json({
-      error: 'No pudimos registrar tu pedido ni enviar el email. Por favor, intentá de nuevo.',
-      _debug: error.message,
-      _code: error.code
-    });
   }
 };
