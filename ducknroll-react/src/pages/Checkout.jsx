@@ -5,6 +5,15 @@ import { useAuth } from '../context/AuthContext';
 import { sendOrderEmail } from '../services/email';
 import Swal from 'sweetalert2';
 import api from '../services/api';
+import logo from '../assets/images/logo1.png';
+
+const messages = [
+  "Poniéndole Duck'n Roll a tu remera... 🦆",
+  "Creando tu diseño... 🎨",
+  "Rockeando tu estilo... 🎸",
+  "Ajustando las costuras de la actitud... ✂️",
+  "¡Todo listo! Tu remera ya está en camino... 🚚"
+];
 
 const Checkout = () => {
   const { cart, getTotalPrice, clearCart } = useCart();
@@ -30,6 +39,41 @@ const Checkout = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Estados para la pantalla de carga personalizada
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (loading) {
+      interval = setInterval(() => {
+        setCurrentMessageIndex((prev) => (prev + 1) % messages.length);
+      }, 1500);
+    } else {
+      setCurrentMessageIndex(0);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
+
+  useEffect(() => {
+    let interval;
+    if (loading) {
+      setProgress(0);
+      interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 95) {
+            return 95;
+          }
+          const diff = Math.random() * 12 + 4; // Incremento dinámico
+          return Math.min(95, prev + diff);
+        });
+      }, 250);
+    } else {
+      setProgress(0);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleChange = (e) => {
     setFormData({
@@ -156,7 +200,46 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 sm:py-12 px-4 sm:px-6">
+    <div className="min-h-screen bg-gray-50 py-8 sm:py-12 px-4 sm:px-6 relative">
+      {/* Pantalla de carga personalizada y animada */}
+      {loading && (
+        <div className="fixed inset-0 bg-secondary/80 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-300">
+          <div className="bg-white text-dark rounded-3xl p-8 max-w-sm w-full border border-gray-150 shadow-2xl flex flex-col items-center justify-center text-center transform scale-100 transition-all duration-300">
+            {/* Logo del pato flotando con brillo */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-primary/25 rounded-full filter blur-xl animate-pulse"></div>
+              <img 
+                src={logo} 
+                alt="Duck Logo" 
+                className="h-24 w-auto relative animate-bounce select-none z-10" 
+                style={{ animationDuration: '2.5s' }}
+              />
+            </div>
+            
+            {/* Título de la marca */}
+            <h3 className="text-xl font-bold font-retro mb-2 text-dark">
+              Duck'n Roll
+            </h3>
+            
+            {/* Mensajes rotativos */}
+            <p className="text-sm text-gray-custom font-sans h-10 flex items-center justify-center font-medium transition-all duration-300">
+              {messages[currentMessageIndex]}
+            </p>
+
+            {/* Barra de progreso animada */}
+            <div className="w-full bg-gray-100 rounded-full h-3.5 mt-4 mb-2 overflow-hidden p-0.5 border border-gray-200">
+              <div 
+                className="bg-primary h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(255,199,0,0.6)]"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="text-[11px] font-bold text-gray-custom uppercase tracking-wider font-sans">
+              {Math.round(progress)}% procesado
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-5xl mx-auto">
         <div className="mb-4 sm:mb-6 text-sm text-gray-custom font-sans flex items-center gap-2">
           <Link to="/carrito" className="hover:text-primary transition-colors">🛒 Volver al carrito</Link>
