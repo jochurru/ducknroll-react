@@ -24,6 +24,8 @@ const crearTransporter = () => {
  *  - Email de confirmación al cliente con resumen de su compra
  */
 export const enviarEmailOrden = async (req, res) => {
+  let orderSaved = false;
+  let numeroOrden = `DK${Date.now()}`;
   try {
     const { email, cliente, productos, total, notas, fecha, orderId } = req.body;
 
@@ -36,8 +38,9 @@ export const enviarEmailOrden = async (req, res) => {
       ? new Date(fecha).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })
       : new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
 
-    const numeroOrden = orderId || `DK${Date.now()}`;
-    let orderSaved = false;
+    if (orderId) {
+      numeroOrden = orderId;
+    }
 
     // Registrar la orden en Firebase Firestore antes de intentar mandar el email
     try {
