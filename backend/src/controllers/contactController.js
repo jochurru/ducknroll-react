@@ -12,7 +12,10 @@ const crearTransporter = () => {
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
-    }
+    },
+    connectionTimeout: 8000, // 8 segundos
+    greetingTimeout: 8000,
+    socketTimeout: 8000
   });
   // Verify connection configuration
   transporter.verify((error, success) => {

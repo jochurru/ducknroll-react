@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { db } from '../config/firebase.js';
 
 /**
  * Crea y devuelve el transporter de nodemailer configurado con Gmail.
@@ -9,7 +10,10 @@ const crearTransporter = () => {
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
-    }
+    },
+    connectionTimeout: 8000, // 8 segundos
+    greetingTimeout: 8000,
+    socketTimeout: 8000
   });
 };
 
@@ -33,6 +37,31 @@ export const enviarEmailOrden = async (req, res) => {
       : new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
 
     const numeroOrden = orderId || `DK${Date.now()}`;
+    let orderSaved = false;
+
+    // Registrar la orden en Firebase Firestore antes de intentar mandar el email
+    try {
+      await db.collection('ordenes').doc(numeroOrden).set({
+        id: numeroOrden,
+        email,
+        cliente,
+        productos: productos.map(p => ({
+          nombre: p.nombre,
+          talle: p.talle || p.talleSeleccionado || '-',
+          cantidad: p.cantidad,
+          subtotal: Number(p.subtotal)
+        })),
+        total: Number(total),
+        notas: notas || '',
+        fecha: fecha || new Date().toISOString(),
+        estado: 'pendiente',
+        createdAt: new Date().toISOString()
+      });
+      console.log(`✅ Orden #${numeroOrden} registrada con éxito en Firestore.`);
+      orderSaved = true;
+    } catch (dbError) {
+      console.error('❌ Error al registrar la orden en Firestore:', dbError);
+    }
 
     const productosHTML = productos.map(p => `
       <tr style="border-bottom: 1px solid #f0f0f0;">
@@ -235,8 +264,16 @@ export const enviarEmailOrden = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error al enviar emails de orden:', error);
+    if (orderSaved) {
+      // Si ya se guardó en la base de datos, no devolvemos un 500 para no trabar el flujo de compra
+      return res.status(200).json({
+        message: 'Pedido registrado en base de datos, pero hubo un problema al enviar la confirmación por email.',
+        orderId: numeroOrden,
+        warning: 'No se pudo enviar el correo de confirmación por email.'
+      });
+    }
     res.status(500).json({
-      error: 'No pudimos enviar la confirmación por email. El pedido igual fue registrado.',
+      error: 'No pudimos registrar tu pedido ni enviar el email. Por favor, intentá de nuevo.',
       _debug: error.message,
       _code: error.code
     });
