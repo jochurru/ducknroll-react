@@ -38,7 +38,7 @@ export const createPreference = async (req, res) => {
         payer: {
           name: cliente.nombre,
           surname: cliente.apellido,
-          email: email,
+          email: 'comprador_prueba@test.com', // Email ficticio para evitar bucles de redirección con tu mail real de admin
           phone: {
             number: cliente.telefono
           },
@@ -48,9 +48,9 @@ export const createPreference = async (req, res) => {
           }
         },
         back_urls: {
-          success: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/confirmacion`,
+          success: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/confirmacion?orderId=${orderId || `DK${Date.now()}`}`,
           failure: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/carrito`,
-          pending: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/confirmacion`
+          pending: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/confirmacion?orderId=${orderId || `DK${Date.now()}`}`
         },
         auto_return: 'approved',
         metadata: {
