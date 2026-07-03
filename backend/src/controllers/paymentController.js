@@ -5,7 +5,7 @@ import { descontarInventarioFirestore } from './productsController.js';
 
 // Inicializar el cliente de Mercado Pago
 const client = new MercadoPagoConfig({
-  accessToken: process.env.MP_ACCESS_TOKEN || 'TEST-4144498305711728-070223-5e92db2142df35c754d9241ec27e28df-28444917' // Token sandbox de pruebas por defecto
+  accessToken: process.env.MP_ACCESS_TOKEN || 'APP_USR-1475207540454939-070314-8ce92fc4e97b567a16607df22650a4da-3515192452' // Token sandbox de pruebas por defecto
 });
 
 /**
