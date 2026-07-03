@@ -38,7 +38,6 @@ export const createPreference = async (req, res) => {
         payer: {
           name: cliente.nombre,
           surname: cliente.apellido,
-          email: 'comprador_prueba@test.com', // Email ficticio para evitar bucles de redirección con tu mail real de admin
           phone: {
             number: cliente.telefono
           },
