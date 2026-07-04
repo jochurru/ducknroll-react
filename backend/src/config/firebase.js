@@ -9,10 +9,8 @@ const privateKey = process.env.FIREBASE_PRIVATE_KEY
   ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
   : undefined;
 
-if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !privateKey) {
-  console.warn('⚠️ Advertencia: Faltan variables de entorno para inicializar Firebase Admin SDK en el servidor.');
-} else {
-  try {
+try {
+  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && privateKey) {
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
@@ -20,10 +18,14 @@ if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !p
         privateKey: privateKey,
       }),
     });
-    console.log('🔥 Firebase Admin SDK inicializado correctamente en backend.');
-  } catch (error) {
-    console.error('❌ Error al inicializar Firebase Admin SDK:', error.message);
+    console.log('🔥 Firebase Admin SDK inicializado correctamente usando variables de entorno.');
+  } else {
+    // Si corre en Google Cloud Run, inicializa de forma nativa sin pasar credenciales explícitas (usa ADC)
+    admin.initializeApp();
+    console.log('🔥 Firebase Admin SDK inicializado correctamente usando credenciales nativas (ADC).');
   }
+} catch (error) {
+  console.error('❌ Error al inicializar Firebase Admin SDK:', error.message);
 }
 
 export const db = admin.firestore();

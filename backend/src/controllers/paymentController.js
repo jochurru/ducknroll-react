@@ -49,9 +49,9 @@ export const createPreference = async (req, res) => {
           }
         },
         back_urls: {
-          success: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/confirmacion?orderId=${generatedOrderId}`,
-          failure: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/carrito`,
-          pending: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/confirmacion?orderId=${generatedOrderId}`
+          success: `${process.env.FRONTEND_URL || 'https://ducknroll.com.ar'}/confirmacion?orderId=${generatedOrderId}`,
+          failure: `${process.env.FRONTEND_URL || 'https://ducknroll.com.ar'}/carrito`,
+          pending: `${process.env.FRONTEND_URL || 'https://ducknroll.com.ar'}/confirmacion?orderId=${generatedOrderId}`
         },
         auto_return: 'approved',
         metadata: {
@@ -61,7 +61,7 @@ export const createPreference = async (req, res) => {
           productos: items, // Mantenemos el formato original que espera tu orderController
           notas: notes || ''
         },
-        notification_url: `${process.env.BACKEND_URL || 'https://ducknroll-react.onrender.com'}/api/payments/webhook`
+        notification_url: `${process.env.BACKEND_URL || 'https://api.ducknroll.com.ar'}/api/payments/webhook`
       }
     });
 
