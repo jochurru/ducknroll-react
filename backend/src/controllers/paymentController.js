@@ -5,7 +5,7 @@ import { descontarInventarioFirestore } from './productsController.js';
 
 // Inicializar el cliente de Mercado Pago
 const client = new MercadoPagoConfig({
-  accessToken: process.env.MP_ACCESS_TOKEN || 'APP_USR-1475207540454939-070314-8ce92fc4e97b567a16607df22650a4da-3515192452' // Token sandbox de pruebas por defecto
+  accessToken: process.env.MP_ACCESS_TOKEN || 'APP_USR-1475207540454939-070314-8ce92fc4e97b567a16607df22650a4da-3515192452' // Token sandbox por defecto
 });
 
 /**
@@ -22,16 +22,18 @@ export const createPreference = async (req, res) => {
 
     const preference = new Preference(client);
 
-    // Mapear los items del carrito para Mercado Pago
+    // Mapear los items del carrito para Mercado Pago de forma robusta
     const mpItems = items.map(item => ({
       id: item.id.toString(),
       title: `${item.nombre} (Talle: ${item.talleSeleccionado || item.talle || '-'})`,
-      unit_price: Number(item.precio),
-      quantity: Number(item.quantity),
+      unit_price: parseFloat(item.precio),
+      quantity: parseInt(item.quantity || item.cantidad, 10),
       currency_id: 'ARS'
     }));
 
-    // Generar Preference ID
+    const generatedOrderId = orderId || `DK${Date.now()}`;
+
+    // Generar la preferencia en Mercado Pago
     const response = await preference.create({
       body: {
         items: mpItems,
@@ -39,24 +41,24 @@ export const createPreference = async (req, res) => {
           name: cliente.nombre,
           surname: cliente.apellido,
           phone: {
-            number: cliente.telefono
+            number: cliente.telefono ? cliente.telefono.toString() : ''
           },
           address: {
-            street_name: cliente.direccion,
-            zip_code: cliente.codigoPostal
+            street_name: cliente.direccion || '',
+            zip_code: cliente.codigoPostal ? cliente.codigoPostal.toString() : ''
           }
         },
         back_urls: {
-          success: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/confirmacion?orderId=${orderId || `DK${Date.now()}`}`,
+          success: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/confirmacion?orderId=${generatedOrderId}`,
           failure: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/carrito`,
-          pending: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/confirmacion?orderId=${orderId || `DK${Date.now()}`}`
+          pending: `${process.env.FRONTEND_URL || 'https://ducknroll-react.vercel.app'}/confirmacion?orderId=${generatedOrderId}`
         },
         auto_return: 'approved',
         metadata: {
-          order_id: orderId || `DK${Date.now()}`,
-          email,
-          cliente,
-          productos: items,
+          order_id: generatedOrderId,
+          email: email,
+          cliente: cliente,
+          productos: items, // Mantenemos el formato original que espera tu orderController
           notas: notes || ''
         },
         notification_url: `${process.env.BACKEND_URL || 'https://ducknroll-react.onrender.com'}/api/payments/webhook`
@@ -82,85 +84,85 @@ export const handleWebhook = async (req, res) => {
   try {
     const { query } = req;
     
-    // Mercado Pago manda el ID del pago en 'id' o en 'data.id' según el tipo de notificación
+    // Mercado Pago manda el ID del pago en diferentes campos según el tipo de formato/notificación
     const topic = query.topic || query.type;
     const paymentId = query.id || query['data.id'] || (req.body && req.body.data && req.body.data.id);
 
     console.log(`🔔 Webhook de Mercado Pago recibido. Topic: ${topic}, ID: ${paymentId}`);
 
-    // Solo procesamos notificaciones de pagos
+    // Validar si la notificación corresponde a un evento de pago
     if (topic === 'payment' || req.body?.type === 'payment' || (req.body?.action && req.body.action.startsWith('payment.'))) {
       if (!paymentId) {
         return res.status(200).send('Webhook recibido sin ID de pago, se ignora.');
       }
 
-      // Consultar el estado del pago a Mercado Pago
+      // Consultar el estado del pago directamente al cliente oficial
       const payment = new Payment(client);
       const paymentInfo = await payment.get({ id: paymentId });
 
       const status = paymentInfo.status;
-      const orderId = paymentInfo.metadata?.order_id;
+      const metadata = paymentInfo.metadata;
+      const orderId = metadata?.order_id;
       
       console.log(`💳 Pago ${paymentId} de la orden #${orderId} está: ${status}`);
 
-      if (status === 'approved') {
-        const metadata = paymentInfo.metadata;
+      if (status === 'approved' && metadata) {
+        const email = metadata.email;
+        const cliente = metadata.cliente;
+        const productos = metadata.productos;
+        const notas = metadata.notas;
+        const total = paymentInfo.transaction_amount;
+
+        // Verificar duplicados en Firestore
+        const orderRef = db.collection('ordenes').doc(orderId);
+        const orderDoc = await orderRef.get();
         
-        if (metadata) {
-          const email = metadata.email;
-          const cliente = metadata.cliente;
-          const productos = metadata.productos;
-          const notas = metadata.notas;
-          const total = paymentInfo.transaction_amount;
+        if (orderDoc.exists && orderDoc.data().estado === 'pagado') {
+          console.log(`⚠️ La orden #${orderId} ya está registrada como pagada. Ignorando duplicado.`);
+          return res.status(200).send('OK (Duplicado)');
+        }
 
-          // Verificar si la orden ya existe en Firestore y si ya está pagada
-          const orderRef = db.collection('ordenes').doc(orderId);
-          const orderDoc = await orderRef.get();
-          
-          if (orderDoc.exists && orderDoc.data().estado === 'pagado') {
-            console.log(`⚠️ La orden #${orderId} ya está registrada como pagada. Ignorando duplicado.`);
-            return res.status(200).send('OK (Duplicado)');
-          }
+        console.log(`✅ Registrando orden aprobada #${orderId} en base de datos...`);
 
-          console.log(`✅ Registrando orden aprobada #${orderId} en base de datos...`);
+        // Mapeo unificado de los productos para la base de datos
+        const orderData = {
+          email,
+          cliente,
+          productos: productos.map(p => ({
+            nombre: p.nombre || p.title || '',
+            talle: p.talleSeleccionado || p.talle || p.talle_seleccionado || '-',
+            cantidad: parseInt(p.quantity || p.cantidad, 10) || 1,
+            subtotal: parseFloat(p.subtotal || p.precio_total || (Number(p.precio || p.unit_price) * Number(p.quantity || p.cantidad)))
+          })),
+          total,
+          notas,
+          fecha: new Date().toISOString(),
+          estado: 'pagado',
+          paymentId
+        };
 
-          const orderData = {
-            email,
-            cliente,
-            productos: productos.map(p => ({
-              nombre: p.nombre,
-              talle: p.talle || p.talleSeleccionado || '-',
-              cantidad: p.cantidad || p.quantity,
-              subtotal: p.subtotal || (Number(p.precio) * Number(p.quantity))
-            })),
-            total,
-            notas,
-            fecha: new Date().toISOString(),
-            estado: 'pagado',
-            paymentId
-          };
-
-          // 1. Guardar la orden y enviar emails (Nodemailer / Formspree fallback)
-          const result = await registrarYEnviarEmailsPedido(orderData, orderId);
-          
-          if (result.success || result.orderSaved) {
-            // 2. Descontar stock en Firestore de manera automatizada
-            try {
-              const itemsToDiscount = productos.map(p => ({
-                id: p.id,
-                talle: p.talleSeleccionado || p.talle || 'M',
-                cantidad: p.quantity || p.cantidad
-              }));
-              await descontarInventarioFirestore(itemsToDiscount);
-            } catch (stockError) {
-              console.error('⚠️ Error al descontar stock desde webhook:', stockError);
-            }
+        // 1. Guardar orden y disparar emails
+        const result = await registrarYEnviarEmailsPedido(orderData, orderId);
+        
+        if (result.success || result.orderSaved) {
+          // 2. Descontar stock usando las propiedades seguras mapeadas
+          try {
+            const itemsToDiscount = productos.map(p => ({
+              id: p.id,
+              talle: p.talleSeleccionado || p.talle || p.talle_seleccionado || 'M',
+              cantidad: parseInt(p.quantity || p.cantidad, 10) || 1
+            }));
+            
+            console.log('📦 Solicitando descuento de inventario para:', itemsToDiscount);
+            await descontarInventarioFirestore(itemsToDiscount);
+          } catch (stockError) {
+            console.error('⚠️ Error al descontar stock desde el webhook:', stockError);
           }
         }
       }
     }
 
-    // Responder 200 a Mercado Pago para confirmar recepción
+    // Siempre responder 200 a Mercado Pago para avisar que llegó bien
     res.status(200).send('OK');
   } catch (error) {
     console.error('❌ Error en el webhook de Mercado Pago:', error.message);
